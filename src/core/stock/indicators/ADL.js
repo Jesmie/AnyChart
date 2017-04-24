@@ -10,20 +10,12 @@ goog.require('anychart.utils');
  * ADL indicator class.
  * @param {!(anychart.core.stock.Plot|anychart.core.stock.Scroller)} plot
  * @param {!anychart.data.TableMapping} mapping
- * @param {number=} opt_period
  * @param {anychart.enums.StockSeriesType=} opt_seriesType
  * @constructor
  * @extends {anychart.core.stock.indicators.Base}
  */
-anychart.core.stock.indicators.ADL = function(plot, mapping, opt_period, opt_seriesType) {
+anychart.core.stock.indicators.ADL = function(plot, mapping, opt_seriesType) {
   anychart.core.stock.indicators.ADL.base(this, 'constructor', plot, mapping);
-
-  /**
-   * ADL period.
-   * @type {number}
-   * @private
-   */
-  this.period_ = anychart.utils.normalizeToNaturalNumber(opt_period, 1, false);
 
   this.declareSeries('main', opt_seriesType);
   this.init();
@@ -33,13 +25,13 @@ goog.inherits(anychart.core.stock.indicators.ADL, anychart.core.stock.indicators
 
 /** @inheritDoc */
 anychart.core.stock.indicators.ADL.prototype.createComputer = function(mapping) {
-  return anychart.math.adl.createComputer(mapping, this.period_);
+  return anychart.math.adl.createComputer(mapping);
 };
 
 
 /** @inheritDoc */
 anychart.core.stock.indicators.ADL.prototype.createNameForSeries = function(seriesId, series) {
-  return 'ADL(' + this.period_ + ')';
+  return 'ADL(1)';
 };
 
 
@@ -54,27 +46,8 @@ anychart.core.stock.indicators.ADL.prototype.series = function(opt_type) {
 };
 
 
-/**
- * Getter and setter for the period.
- * @param {number=} opt_value
- * @return {anychart.core.stock.indicators.ADL|number}
- */
-anychart.core.stock.indicators.ADL.prototype.period = function(opt_value) {
-  if (goog.isDef(opt_value)) {
-    var period = anychart.utils.normalizeToNaturalNumber(opt_value, this.period_, false);
-    if (period != this.period_) {
-      this.period_ = period;
-      this.reinitComputer();
-    }
-    return this;
-  }
-  return this.period_;
-};
-
-
 //exports
 (function() {
   var proto = anychart.core.stock.indicators.ADL.prototype;
   proto['series'] = proto.series;
-  proto['period'] = proto.period;
 })();

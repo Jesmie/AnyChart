@@ -837,12 +837,11 @@ anychart.core.stock.Scroller.prototype.getAllSeries = function() {
 /**
  * Creates ADL indicator on the scroller.
  * @param {!anychart.data.TableMapping} mapping
- * @param {number=} opt_period
  * @param {anychart.enums.StockSeriesType=} opt_seriesType
  * @return {anychart.core.stock.indicators.ADL}
  */
-anychart.core.stock.Scroller.prototype.adl = function(mapping, opt_period, opt_seriesType) {
-  var result = new anychart.core.stock.indicators.ADL(this, mapping, opt_period, opt_seriesType);
+anychart.core.stock.Scroller.prototype.adl = function(mapping, opt_seriesType) {
+  var result = new anychart.core.stock.indicators.ADL(this, mapping, opt_seriesType);
   this.indicators_.push(result);
   return result;
 };

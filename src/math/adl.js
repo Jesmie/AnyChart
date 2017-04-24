@@ -19,11 +19,10 @@ anychart.math.adl.Context;
 
 /**
  * Creates context for ADL indicator calculation.
- * @param {number=} opt_period [1] Indicator period. Defaults to 1.
  * @return {anychart.math.adl.Context}
  */
-anychart.math.adl.initContext = function(opt_period) {
-  var period = anychart.utils.normalizeToNaturalNumber(opt_period, 1, false);
+anychart.math.adl.initContext = function() {
+  var period = 1;
   return {
     highQueue: anychart.math.cycledQueue(period),
     lowQueue: anychart.math.cycledQueue(period),
@@ -122,12 +121,11 @@ anychart.math.adl.calculationFunction = function(row, context) {
 /**
  * Creates ADL computer for the given table mapping.
  * @param {anychart.data.TableMapping} mapping
- * @param {number=} opt_period
  * @return {anychart.data.TableComputer}
  */
-anychart.math.adl.createComputer = function(mapping, opt_period) {
+anychart.math.adl.createComputer = function(mapping) {
   var result = mapping.getTable().createComputer(mapping);
-  result.setContext(anychart.math.adl.initContext(opt_period));
+  result.setContext(anychart.math.adl.initContext());
   result.setStartFunction(anychart.math.adl.startFunction);
   result.setCalculationFunction(anychart.math.adl.calculationFunction);
   result.addOutputField('result');
