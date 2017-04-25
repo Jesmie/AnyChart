@@ -1,15 +1,19 @@
+goog.provide('anychart.animations.PieAnimation');
+goog.provide('anychart.animations.PieLabelAnimation');
 goog.provide('anychart.charts.Pie');
+goog.provide('anychart.core.PiePoint');
+goog.provide('anychart.core.utils.PieInteractivityState');
 
+goog.require('anychart.animations.Animation');
 goog.require('anychart.animations.AnimationSerialQueue');
-goog.require('anychart.animations.PieAnimation');
-goog.require('anychart.animations.PieLabelAnimation');
 goog.require('anychart.color');
-goog.require('anychart.core.PiePoint');
+goog.require('anychart.core.Point');
 goog.require('anychart.core.SeparateChart');
 goog.require('anychart.core.reporting');
 goog.require('anychart.core.ui.CircularLabelsFactory');
 goog.require('anychart.core.ui.Tooltip');
 goog.require('anychart.core.utils.IInteractiveSeries');
+goog.require('anychart.core.utils.InteractivityState');
 goog.require('anychart.core.utils.PieInteractivityState');
 goog.require('anychart.core.utils.TypedLayer');
 goog.require('anychart.data.Set');
@@ -17,6 +21,243 @@ goog.require('anychart.enums');
 goog.require('anychart.format.Context');
 goog.require('anychart.math');
 goog.require('anychart.palettes');
+
+
+/**
+ * Interactivity state class for pie. See #addPointStateInternal method.
+ * @param {anychart.charts.Pie} target Pie chart.
+ * @constructor
+ * @extends {anychart.core.utils.InteractivityState}
+ */
+anychart.core.utils.PieInteractivityState = function(target) {
+    anychart.core.utils.PieInteractivityState.base(this, 'constructor', target);
+};
+goog.inherits(anychart.core.utils.PieInteractivityState, anychart.core.utils.InteractivityState);
+
+
+/** @inheritDoc */
+anychart.core.utils.PieInteractivityState.prototype.addPointStateInternal = function(state, index) {
+    if (!this.target.getIterator().select(index))
+        return;
+
+    var arrIndex = goog.array.binarySearch(this.stateIndex, index);
+    //if state is normal - do nothing.
+    if (state != anychart.PointState.NORMAL) {
+        //if state by index doesn't found then adds it
+        //else updates state.
+        if (arrIndex < 0) {
+            goog.array.insertAt(this.stateIndex, index, ~arrIndex);
+            goog.array.insertAt(this.stateValue, state, ~arrIndex);
+
+            if (this.seriesState == anychart.PointState.NORMAL)
+                this.target.applyAppearanceToPoint(state);
+
+            var updateSeries = this.updateRules(state, NaN);
+            if (updateSeries && !this.target.isDiscreteBased() && this.target.hoverMode() == anychart.enums.HoverMode.SINGLE)
+                this.target.applyAppearanceToSeries(state);
+        } else {
+            // here we upgrading logic for pie
+            // when state adds - update point appearance.
+            this.stateValue[arrIndex] |= state;
+            this.target.applyAppearanceToPoint(this.stateValue[arrIndex]);
+        }
+    }
+};
+
+
+/**
+ * Point representing pie point.
+ * @param {anychart.charts.Pie} chart Pie chart.
+ * @param {number} index Point index in chart.
+ * @constructor
+ * @extends {anychart.core.Point}
+ */
+anychart.core.PiePoint = function(chart, index) {
+    anychart.core.PiePoint.base(this, 'constructor', chart, index);
+};
+goog.inherits(anychart.core.PiePoint, anychart.core.Point);
+
+
+/**
+ * Gets start angle of the point.
+ * @return {number}
+ */
+anychart.core.PiePoint.prototype.getStartAngle = function() {
+    return /** @type {number} */ (this.chart.data().meta(this.index, 'start'));
+};
+
+
+/**
+ * Gets end angle of the point.
+ * @return {number}
+ */
+anychart.core.PiePoint.prototype.getEndAngle = function() {
+    var data = this.chart.data();
+    var start = data.meta(this.index, 'start');
+    var sweep = data.meta(this.index, 'sweep');
+    return /** @type {number} */ (start + sweep);
+};
+
+
+/** @inheritDoc */
+anychart.core.PiePoint.prototype.selected = function(opt_value) {
+    //TODO(AntonKagakin): pie chart cant select points in the new interactivity model
+    if (goog.isDef(opt_value)) {
+        this.getChart().explodeSlice(this.index, !!opt_value);
+        return this;
+    } else
+        return /** @type {boolean} */ (this.chart.data().meta(this.index, 'exploded'));
+};
+
+
+/**
+ * Alias-method
+ */
+anychart.core.PiePoint.prototype.exploded = anychart.core.PiePoint.prototype.selected;
+
+
+//exports
+(function() {
+    var proto = anychart.core.PiePoint.prototype;
+    proto['getStartAngle'] = proto.getStartAngle;
+    proto['getEndAngle'] = proto.getEndAngle;
+    proto['hovered'] = proto.hovered;
+    proto['selected'] = proto.selected;
+    proto['exploded'] = proto.exploded;
+})();
+
+
+/**
+ * Pie animation.
+ * @constructor
+ * @param {anychart.charts.Pie} chart Pie chart instance.
+ * @param {number} duration Length of animation in milliseconds.
+ * @param {Function=} opt_acc Acceleration function, returns 0-1 for inputs 0-1.
+ * @extends {anychart.animations.Animation}
+ */
+anychart.animations.PieLabelAnimation = function(chart, duration, opt_acc) {
+    anychart.animations.PieLabelAnimation.base(this, 'constructor', null, [], [], duration, opt_acc);
+
+    /**
+     * @type {anychart.charts.Pie}
+     */
+    this.chart = chart;
+
+    /**
+     * @type {boolean}
+     */
+    this.isOutside = this.chart.isOutsideLabels();
+
+    /**
+     * @type {?acgraph.vector.Stroke}
+     */
+    this.connectorStroke = /** @type {acgraph.vector.Stroke} */ (this.chart.connectorStroke());
+};
+goog.inherits(anychart.animations.PieLabelAnimation, anychart.animations.Animation);
+
+
+/** @inheritDoc */
+anychart.animations.PieLabelAnimation.prototype.update = function() {
+    this.startPoint.length = this.endPoint.length = 0;
+    this.startPoint.push(0.00001, 0.00001);
+    this.endPoint.push(1, this.connectorStroke['opacity'] || 1);
+};
+
+
+/** @inheritDoc */
+anychart.animations.PieLabelAnimation.prototype.onAnimate = function() {
+    this.chart.updateLabelsOnAnimate(this.coords[0], this.coords[1], this.isOutside);
+};
+
+
+/** @inheritDoc */
+anychart.animations.PieLabelAnimation.prototype.onEnd = function() {
+    this.onAnimate();
+};
+
+
+/** @inheritDoc */
+anychart.animations.PieLabelAnimation.prototype.disposeInternal = function() {
+    this.chart = null;
+    this.connectorStroke = null;
+    delete this.isOutside;
+    anychart.animations.PieLabelAnimation.base(this, 'disposeInternal');
+};
+
+
+
+/**
+ * Pie animation.
+ * @constructor
+ * @param {anychart.charts.Pie} chart Pie chart instance.
+ * @param {number} duration Length of animation in milliseconds.
+ * @param {Function=} opt_acc Acceleration function, returns 0-1 for inputs 0-1.
+ * @extends {anychart.animations.Animation}
+ */
+anychart.animations.PieAnimation = function(chart, duration, opt_acc) {
+    anychart.animations.PieAnimation.base(this, 'constructor', null, [], [], duration, opt_acc);
+
+    /**
+     * @type {anychart.charts.Pie}
+     */
+    this.chart = chart;
+};
+goog.inherits(anychart.animations.PieAnimation, anychart.animations.Animation);
+
+
+/** @inheritDoc */
+anychart.animations.PieAnimation.prototype.update = function() {
+    this.startPoint.length = this.endPoint.length = 0;
+    var iterator = this.chart.getDetachedIterator();
+    // we would use variable number of arguments per point - from zero to five
+    while (iterator.advance()) {
+        if (!iterator.meta('missing')) {
+            var start = /** @type {number} */(iterator.meta('start'));
+            var sweep = /** @type {number} */(iterator.meta('sweep'));
+            var radius = this.chart.getPixelRadius();
+            var innerRadius = this.chart.getPixelInnerRadius();
+            // we need this to make the drawer choose appropriate shape.
+            this.startPoint.push(this.chart.getStartAngle(), 0, 0, 0);
+            this.endPoint.push(start, sweep, radius, innerRadius);
+        }
+    }
+};
+
+
+/** @inheritDoc */
+anychart.animations.PieAnimation.prototype.onBegin = function() {
+    this.chart.updateLabelsOnAnimate(0.00001, 0.00001, this.chart.isOutsideLabels());
+};
+
+
+/** @inheritDoc */
+anychart.animations.PieAnimation.prototype.onAnimate = function() {
+    var iterator = this.chart.getDetachedIterator();
+    var currentCoordIndex = 0;
+    while (iterator.advance()) {
+        if (!iterator.meta('missing')) {
+            iterator.meta('start', this.coords[currentCoordIndex++]);
+            iterator.meta('sweep', this.coords[currentCoordIndex++]);
+            iterator.meta('radius', this.coords[currentCoordIndex++]);
+            iterator.meta('innerRadius', this.coords[currentCoordIndex++]);
+            this.chart.updatePointOnAnimate(iterator);
+        }
+    }
+};
+
+
+/** @inheritDoc */
+anychart.animations.PieAnimation.prototype.onEnd = function() {
+    this.onAnimate();
+};
+
+
+/** @inheritDoc */
+anychart.animations.PieAnimation.prototype.disposeInternal = function() {
+    this.chart = null;
+    anychart.animations.PieAnimation.base(this, 'disposeInternal');
+};
+
 
 
 

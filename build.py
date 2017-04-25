@@ -271,6 +271,8 @@ def __get_optimized_compiler_args():
         # '--jscomp_warning useOfGoogBase',
         '--jscomp_warning underscore',
         '--jscomp_warning visibility',
+        '--output_manifest', 'out/manifest.txt',
+        '--output_module_dependencies', 'out/deps.txt'
     ]
     __set_optimization_level(compiler_args, OptimizationLevel.ADVANCED)
     return compiler_args
