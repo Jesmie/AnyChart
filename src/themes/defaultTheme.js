@@ -245,6 +245,16 @@ goog.provide('anychart.themes.defaultTheme');
     return global['anychart']['color']['setThickness'](global['anychart']['color']['lighten'](this['sourceColor']), 1.5);
   };
 
+
+  /**
+   * @this {*}
+   * @return {*}
+   */
+  var returnLightenStrokeSourceColor1 = function() {
+    return global['anychart']['color']['setThickness'](global['anychart']['color']['lighten'](this['sourceColor']), 1);
+  };
+
+
   /**
    * @this {*}
    * @return {*}
@@ -2390,8 +2400,7 @@ goog.provide('anychart.themes.defaultTheme');
             'anchor': 'leftTop'
           },
           'stroke': returnStrokeSourceColor1,
-          'hoverStroke': returnLightenSourceColor,
-          'selectStroke': returnDarkenSourceColor
+          'hoverStroke': returnLightenStrokeSourceColor1
         },
         'mekko': {}
       },
