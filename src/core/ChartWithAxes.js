@@ -9,9 +9,9 @@ goog.require('anychart.core.axisMarkers.Line');
 goog.require('anychart.core.axisMarkers.Range');
 goog.require('anychart.core.axisMarkers.Text');
 goog.require('anychart.core.grids.Linear');
-goog.require('anychart.core.utils.QuarterSettings');
 goog.require('anychart.core.ui.Crosshair');
 goog.require('anychart.core.utils.Crossing');
+goog.require('anychart.core.utils.QuarterSettings');
 goog.require('anychart.enums');
 goog.require('goog.array');
 

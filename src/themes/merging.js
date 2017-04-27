@@ -1355,10 +1355,10 @@ anychart.themes.merging.mergingMap_ = [
   {
     defaultObj: 'chart.defaultQuarterSettings',
     targets: [
-      'quadrant.quarters.rightTop',
-      'quadrant.quarters.leftTop',
-      'quadrant.quarters.leftBottom',
-      'quadrant.quarters.rightBottom'
+      'chart.quarters.rightTop',
+      'chart.quarters.leftTop',
+      'chart.quarters.leftBottom',
+      'chart.quarters.rightBottom'
     ]
   }
 ];

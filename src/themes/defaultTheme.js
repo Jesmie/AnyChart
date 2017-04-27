@@ -2459,6 +2459,14 @@ goog.provide('anychart.themes.defaultTheme');
       ],
       'crossing': {
         'stroke': '#bbdefb'
+      },
+      'quarters': {
+        'rightTop': {
+          'enabled': true
+        },
+        'leftBottom': {
+          'enabled': true
+        }
       }
     },
 

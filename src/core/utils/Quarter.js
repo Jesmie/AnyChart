@@ -122,7 +122,7 @@ anychart.core.utils.Quarter.prototype.titleInvalidated_ = function(event) {
  * @return {!(anychart.core.utils.Quarter|anychart.core.utils.Margin)} .
  */
 anychart.core.utils.Quarter.prototype.margin = function(opt_spaceOrTopOrTopAndBottom, opt_rightOrRightAndLeft, opt_bottom,
-                                                           opt_left) {
+                                                        opt_left) {
   if (!this.margin_) {
     this.margin_ = new anychart.core.utils.Margin();
     this.margin_.listenSignals(this.marginInvalidated_, this);
@@ -158,7 +158,7 @@ anychart.core.utils.Quarter.prototype.marginInvalidated_ = function(event) {
  * @return {!(anychart.core.utils.Quarter|anychart.core.utils.Padding)} .
  */
 anychart.core.utils.Quarter.prototype.padding = function(opt_spaceOrTopOrTopAndBottom, opt_rightOrRightAndLeft, opt_bottom,
-                                                            opt_left) {
+                                                         opt_left) {
   if (!this.padding_) {
     this.padding_ = new anychart.core.utils.Padding();
     this.padding_.listenSignals(this.paddingInvalidated_, this);
