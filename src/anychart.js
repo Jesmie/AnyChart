@@ -274,7 +274,7 @@ anychart.createGanttByType = function(type) {
  *    "chart": {
  *      "type": "pie",
  *      "data": [
- *        ["Product A", 1222],
+ *        ["Product A", 1222],``
  *        ["Product B", 2431],
  *        ["Product C", 3624]
  *      ]
