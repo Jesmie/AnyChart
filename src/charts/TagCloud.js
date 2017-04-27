@@ -1,6 +1,6 @@
 //region --- Requiring and Providing
 goog.provide('anychart.charts.TagCloud');
-goog.require('anychart.charts.SeparateChart');
+goog.require('anychart.core.SeparateChart');
 //endregion
 
 
@@ -8,15 +8,16 @@ goog.require('anychart.charts.SeparateChart');
 /**
  * TagCloud chart class.
  * @param {(anychart.data.View|anychart.data.Set|Array|string)=} opt_data Resource Chart data.
- * @param {Object.<string, (string|boolean)>=} opt_csvSettings If CSV string is passed, you can pass CSV parser settings here as a hash map.
+ * @param {(anychart.enums.TextParsingMode|anychart.data.TextParsingSettings)=} opt_settings If CSV string is passed, you
+ * can pass CSV parser settings here as a hash map.
  * @constructor
  * @extends {anychart.core.SeparateChart}
  * @implements {anychart.core.utils.IInteractiveSeries}
  */
-anychart.charts.TagCloud = function(opt_data, opt_csvSettings) {
+anychart.charts.TagCloud = function(opt_data, opt_settings) {
   anychart.charts.TagCloud.base(this, 'constructor');
 
-  this.data(opt_data || null, opt_csvSettings);
+  this.data(opt_data || null, opt_settings);
 };
 goog.inherits(anychart.charts.TagCloud, anychart.core.SeparateChart);
 
@@ -37,7 +38,7 @@ anychart.charts.TagCloud.prototype.SUPPORTED_CONSISTENCY_STATES =
 
 /** @inheritDoc */
 anychart.charts.TagCloud.prototype.getType = function() {
-  return anychart.enums.ChartTypes.TagCloud;
+  return anychart.enums.ChartTypes.TAG_CLOUD;
 };
 
 
@@ -113,69 +114,9 @@ anychart.charts.TagCloud.prototype.data = function(opt_value, opt_settings) {
 };
 
 
-/**
- *
- */
-anychart.charts.TagCloud.prototype.ignoreList = function(opt_value) {
-  if (goog.isDef(opt_value)) {
-    if (this.ignoreList_ != opt_value) {
-      this.ignoreList_ = goog.isArray(opt_value) ? new RegExp('[' + t.join('|') + ']', 'g') : opt_value;
-      this.invalidate();
-    }
-    return this;
-  }
-  return this.ignoreList_;
-};
-
-
-/**
- *
- */
-anychart.charts.TagCloud.prototype.maxLength = function(opt_value) {
-  if (goog.isDef(opt_value)) {
-    opt_value = +opt_value;
-    if (this.maxLength_ != opt_value) {
-      this.maxLength_ = opt_value;
-      this.invalidate();
-    }
-    return this;
-  }
-  return this.maxLength_;
-};
-
-
 //endregion
 //region --- Utils
-/**
- * Parsing text.
- * @param {string} Text for parse.
- * @return {}
- */
-anychart.charts.TagCloud.prototype.parseText = function(text) {
-  var tags = {};
-  var e = {};
 
-  text.split(anychart.charts.Resource.WORD_SEPARATORS).forEach(function(t) {
-    if (!anychart.charts.Resource.DROP_TEXTS.test(t)) {
-      t = t.replace(anychart.charts.Resource.PUNCTUATION, '');
-      if (!this.ignoreList_.test(t.toLowerCase())) {
-        t = t.substr(0, this.maxLength_);
-        e[t.toLowerCase()] = t;
-        tags[t = t.toLowerCase()] = (tags[t] || 0) + 1;
-      }
-    }
-  });
-
-  tags = anychart.utils.entries(tags).sort(function(t, e) {
-    return e.value - t.value;
-  });
-
-  goog.array.forEach(tags, function(t) {
-    t.key = e[t.key];
-  });
-
-  return tags;
-};
 
 
 //endregion
@@ -184,28 +125,27 @@ anychart.charts.TagCloud.prototype.parseText = function(text) {
  * Calculating.
  */
 anychart.charts.TagCloud.prototype.calculate = function() {
-
-  while (++i < n) {
-    var d = data[i];
-    d.x = (size[0] * (random() + .5)) >> 1;
-    d.y = (size[1] * (random() + .5)) >> 1;
-    cloudSprite(contextAndRatio, d, data, i);
-    if (d.hasText && place(board, d, bounds)) {
-      tags.push(d);
-      event.call("word", cloud, d);
-      if (bounds) cloudBounds(bounds, d);
-      else bounds = [{
-        x: d.x + d.x0,
-        y: d.y + d.y0
-      }, {
-        x: d.x + d.x1,
-        y: d.y + d.y1
-      }];
-      // Temporary hack
-      d.x -= size[0] >> 1;
-      d.y -= size[1] >> 1;
-    }
-  }
+  // while (++i < n) {
+  //   var d = data[i];
+  //   d.x = (size[0] * (random() + .5)) >> 1;
+  //   d.y = (size[1] * (random() + .5)) >> 1;
+  //   cloudSprite(contextAndRatio, d, data, i);
+  //   if (d.hasText && place(board, d, bounds)) {
+  //     tags.push(d);
+  //     event.call("word", cloud, d);
+  //     if (bounds) cloudBounds(bounds, d);
+  //     else bounds = [{
+  //       x: d.x + d.x0,
+  //       y: d.y + d.y0
+  //     }, {
+  //       x: d.x + d.x1,
+  //       y: d.y + d.y1
+  //     }];
+  //     // Temporary hack
+  //     d.x -= size[0] >> 1;
+  //     d.y -= size[1] >> 1;
+  //   }
+  // }
 };
 
 
@@ -219,7 +159,6 @@ anychart.charts.TagCloud.prototype.draw = function() {
 
 
 };
-
 
 
 //endregion

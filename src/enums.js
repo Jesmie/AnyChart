@@ -51,7 +51,7 @@ anychart.enums.ChartTypes = {
   JUMP_LINE: 'jumpLine',
   STICK: 'stick',
   PARETO: 'pareto',
-  CLOUD: 'cloud'
+  TAG_CLOUD: 'tagCloud'
 };
 
 

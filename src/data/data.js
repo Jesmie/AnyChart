@@ -199,12 +199,12 @@ anychart.data.buildMapping = function(dataSet, fromIndex, toIndex, names, opt_ke
  * Text parsing.
  * @param {string} text .
  * @param {(anychart.enums.TextParsingMode|anychart.data.TextParsingSettings)=} opt_settings .
- * @return {Array.<Array.<string|number>>} .
+ * @return {?Array.<Array.<string|number>>} .
  */
 anychart.data.parseText = function(text, opt_settings) {
-  var isCsv = goog.isString(anychart.enums.TextParsingMode) ?
-      anychart.enums.TextParsingMode == 'csv' :
-      !anychart.enums.TextParsingMode || !anychart.enums.TextParsingMode.mode || !anychart.enums.TextParsingMode.mode == 'csv';
+  var isCsv = goog.isString(opt_settings) ?
+      opt_settings == 'csv' :
+      !opt_settings || !opt_settings.mode || !opt_settings.mode == 'csv';
 
   var result;
   if (isCsv) {
@@ -230,12 +230,27 @@ anychart.data.parseText = function(text, opt_settings) {
     var tags = {};
     var e = {};
 
-    var ignoreItems = opt_settings || opt_settings['ignoreItems'] || [];
+    var minLength = 0;
+    var maxLength = NaN;
+    var cutLength = NaN;
+    var ignoreItems;
+
+    if (opt_settings) {
+      ignoreItems = opt_settings['ignoreItems'];
+      if (ignoreItems)
+        ignoreItems = new RegExp('^(' + ignoreItems.join('|') + ')$', 'g');
+
+      if (opt_settings['minLength']) minLength = opt_settings['minLength'];
+      if (opt_settings['maxLength']) maxLength = opt_settings['maxLength'];
+      if (opt_settings['cutLength']) cutLength = opt_settings['cutLength'];
+    }
 
     text.split(anychart.data.WORD_SEPARATORS).forEach(function(t) {
       t = t.replace(anychart.data.PUNCTUATION, '');
-      if (!this.ignoreList_.test(t.toLowerCase())) {
-        t = t.substr(0, this.maxLength_);
+      var l = t.length;
+      if ((!ignoreItems || !ignoreItems.test(t.toLowerCase())) && !(l > maxLength) && !(l < minLength)) {
+        if (!isNaN(cutLength))
+          t = t.substr(0, cutLength);
         e[t.toLowerCase()] = t;
         tags[t = t.toLowerCase()] = (tags[t] || 0) + 1;
       }
@@ -245,11 +260,10 @@ anychart.data.parseText = function(text, opt_settings) {
       return e.value - t.value;
     });
 
+    result = [];
     goog.array.forEach(tags, function(t) {
-      t.key = e[t.key];
+      result.push([e[t.key], t.value]);
     });
-
-    result = tags;
   }
 
   return result;
