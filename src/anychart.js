@@ -1159,6 +1159,7 @@ goog.exportSymbol('anychart.gauges.led', anychart.gauges.led);
 goog.exportSymbol('anychart.ganttProject', anychart.ganttProject);
 goog.exportSymbol('anychart.ganttResource', anychart.ganttResource);
 goog.exportSymbol('anychart.stock', anychart.stock);
+goog.exportSymbol('anychart.quadrant', anychart.quadrant);
 goog.exportSymbol('anychart.theme', anychart.theme);
 goog.exportSymbol('anychart.appendTheme', anychart.appendTheme);
 goog.exportSymbol('anychart.toolbar', anychart.toolbar);
