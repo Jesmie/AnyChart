@@ -2961,6 +2961,8 @@ anychart.charts.Map.prototype.calculate = function() {
             'minLat' in geoScaleSettings ? geoScaleSettings['minLat'] : NaN,
             'maxLat' in geoScaleSettings ? geoScaleSettings['maxLat'] : NaN
         );
+      } else {
+        scale.setMapLimits(NaN, NaN, NaN, NaN);
       }
     }
 
