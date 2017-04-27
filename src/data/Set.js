@@ -172,8 +172,8 @@ anychart.data.Set.prototype.simpleValuesSeen_ = false;
 /**
  * Getter/setter for data.
  * @param {(Array|string)=} opt_value .
- * @param {Object.<string, (string|boolean|undefined)>=} opt_settings If CSV string is passed, you can pass CSV parser settings
- *    here as a hash map.
+ * @param {(anychart.enums.TextParsingMode|anychart.data.TextParsingSettings)=} opt_settings If CSV string is passed, you
+ *    can pass CSV parser settings here as a hash map.
  * @return {!(anychart.data.Set|Array)} .
  */
 anychart.data.Set.prototype.data = function(opt_value, opt_settings) {
