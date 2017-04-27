@@ -2955,10 +2955,12 @@ anychart.charts.Map.prototype.calculate = function() {
 
       var geoScaleSettings = geoData['scale'];
       if (geoScaleSettings) {
-        if (scale.minimumLongModeAuto) scale.minimumX(geoScaleSettings['minLon']);
-        if (scale.maximumLongModeAuto) scale.maximumX(geoScaleSettings['maxLon']);
-        if (scale.minimumLatModeAuto) scale.minimumY(geoScaleSettings['minLat']);
-        if (scale.maximumLatModeAuto) scale.maximumY(geoScaleSettings['maxLat']);
+        scale.setMapLimits(
+            'minLon' in geoScaleSettings ? geoScaleSettings['minLon'] : NaN,
+            'maxLon' in geoScaleSettings ? geoScaleSettings['maxLon'] : NaN,
+            'minLat' in geoScaleSettings ? geoScaleSettings['minLat'] : NaN,
+            'maxLat' in geoScaleSettings ? geoScaleSettings['maxLat'] : NaN
+        );
       }
     }
 
