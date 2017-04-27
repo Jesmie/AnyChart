@@ -1,6 +1,6 @@
-goog.provide('anychart.core.quadrant.QuarterSettings');
+goog.provide('anychart.core.utils.QuarterSettings');
 goog.require('anychart.core.Base');
-goog.require('anychart.core.quadrant.Quarter');
+goog.require('anychart.core.utils.Quarter');
 
 
 
@@ -10,53 +10,53 @@ goog.require('anychart.core.quadrant.Quarter');
  * @extends {anychart.core.Base}
  * @constructor
  */
-anychart.core.quadrant.QuarterSettings = function(chart) {
-  anychart.core.quadrant.QuarterSettings.base(this, 'constructor');
+anychart.core.utils.QuarterSettings = function(chart) {
+  anychart.core.utils.QuarterSettings.base(this, 'constructor');
   this.chart_ = chart;
 
   /**
    * Right top quarter.
-   * @type {anychart.core.quadrant.Quarter}
+   * @type {anychart.core.utils.Quarter}
    * @private
    */
   this.rightTop_ = null;
 
   /**
    * Left top quarter.
-   * @type {anychart.core.quadrant.Quarter}
+   * @type {anychart.core.utils.Quarter}
    * @private
    */
   this.leftTop_ = null;
 
   /**
    * Left bottom quarter.
-   * @type {anychart.core.quadrant.Quarter}
+   * @type {anychart.core.utils.Quarter}
    * @private
    */
   this.leftBottom_ = null;
 
   /**
    * Right bottom quarter.
-   * @type {anychart.core.quadrant.Quarter}
+   * @type {anychart.core.utils.Quarter}
    * @private
    */
   this.rightBottom_ = null;
 
   /**
-   * @type {Array.<anychart.core.quadrant.Quarter>}
+   * @type {Array.<anychart.core.utils.Quarter>}
    * @private
    */
   this.quarters_ = [];
 };
-goog.inherits(anychart.core.quadrant.QuarterSettings, anychart.core.Base);
+goog.inherits(anychart.core.utils.QuarterSettings, anychart.core.Base);
 
 
 //region --- Own API
 /**
  * Getter for items.
- * @return {Array.<anychart.core.quadrant.Quarter>}
+ * @return {Array.<anychart.core.utils.Quarter>}
  */
-anychart.core.quadrant.QuarterSettings.prototype.getItems = function() {
+anychart.core.utils.QuarterSettings.prototype.getItems = function() {
   return this.quarters_;
 };
 
@@ -70,11 +70,11 @@ anychart.core.quadrant.QuarterSettings.prototype.getItems = function() {
 /**
  * Getter/setter for right top quarter.
  * @param {Object=} opt_value Quarter settings.
- * @return {anychart.core.quadrant.Quarter|anychart.core.quadrant.QuarterSettings} Quarter or quarter settings.
+ * @return {anychart.core.utils.Quarter|anychart.core.utils.QuarterSettings} Quarter or quarter settings.
  */
-anychart.core.quadrant.QuarterSettings.prototype.rightTop = function(opt_value) {
+anychart.core.utils.QuarterSettings.prototype.rightTop = function(opt_value) {
   if (!this.rightTop_) {
-    this.rightTop_ = new anychart.core.quadrant.Quarter();
+    this.rightTop_ = new anychart.core.utils.Quarter();
     this.rightTop_.setup(this.chart_.defaultQuarterSettings());
     this.rightTop_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[0] = this.rightTop_;
@@ -90,11 +90,11 @@ anychart.core.quadrant.QuarterSettings.prototype.rightTop = function(opt_value) 
 /**
  * Getter/setter for left top quarter.
  * @param {Object=} opt_value Quarter settings.
- * @return {anychart.core.quadrant.Quarter|anychart.core.quadrant.QuarterSettings} Quarter or quarter settings.
+ * @return {anychart.core.utils.Quarter|anychart.core.utils.QuarterSettings} Quarter or quarter settings.
  */
-anychart.core.quadrant.QuarterSettings.prototype.leftTop = function(opt_value) {
+anychart.core.utils.QuarterSettings.prototype.leftTop = function(opt_value) {
   if (!this.leftTop_) {
-    this.leftTop_ = new anychart.core.quadrant.Quarter();
+    this.leftTop_ = new anychart.core.utils.Quarter();
     this.leftTop_.setup(this.chart_.defaultQuarterSettings());
     this.leftTop_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[1] = this.leftTop_;
@@ -110,11 +110,11 @@ anychart.core.quadrant.QuarterSettings.prototype.leftTop = function(opt_value) {
 /**
  * Getter/setter for left bottom quarter.
  * @param {Object=} opt_value Quarter settings.
- * @return {anychart.core.quadrant.Quarter|anychart.core.quadrant.QuarterSettings} Quarter or quarter settings.
+ * @return {anychart.core.utils.Quarter|anychart.core.utils.QuarterSettings} Quarter or quarter settings.
  */
-anychart.core.quadrant.QuarterSettings.prototype.leftBottom = function(opt_value) {
+anychart.core.utils.QuarterSettings.prototype.leftBottom = function(opt_value) {
   if (!this.leftBottom_) {
-    this.leftBottom_ = new anychart.core.quadrant.Quarter();
+    this.leftBottom_ = new anychart.core.utils.Quarter();
     this.leftBottom_.setup(this.chart_.defaultQuarterSettings());
     this.leftBottom_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[2] = this.leftBottom_;
@@ -130,11 +130,11 @@ anychart.core.quadrant.QuarterSettings.prototype.leftBottom = function(opt_value
 /**
  * Getter/setter for right bottom quarter.
  * @param {Object=} opt_value Quarter settings.
- * @return {anychart.core.quadrant.Quarter|anychart.core.quadrant.QuarterSettings} Quarter or quarter settings.
+ * @return {anychart.core.utils.Quarter|anychart.core.utils.QuarterSettings} Quarter or quarter settings.
  */
-anychart.core.quadrant.QuarterSettings.prototype.rightBottom = function(opt_value) {
+anychart.core.utils.QuarterSettings.prototype.rightBottom = function(opt_value) {
   if (!this.rightBottom_) {
-    this.rightBottom_ = new anychart.core.quadrant.Quarter();
+    this.rightBottom_ = new anychart.core.utils.Quarter();
     this.rightBottom_.setup(this.chart_.defaultQuarterSettings());
     this.rightBottom_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[3] = this.rightBottom_;
@@ -150,8 +150,8 @@ anychart.core.quadrant.QuarterSettings.prototype.rightBottom = function(opt_valu
 //endregion
 //region --- Setup/dispose
 /** @inheritDoc */
-anychart.core.quadrant.QuarterSettings.prototype.serialize = function() {
-  var json = anychart.core.quadrant.QuarterSettings.base(this, 'serialize');
+anychart.core.utils.QuarterSettings.prototype.serialize = function() {
+  var json = anychart.core.utils.QuarterSettings.base(this, 'serialize');
   if (this.rightTop_)
     json['rightTop'] = this.rightTop_.serialize();
   if (this.leftTop_)
@@ -165,8 +165,8 @@ anychart.core.quadrant.QuarterSettings.prototype.serialize = function() {
 
 
 /** @inheritDoc */
-anychart.core.quadrant.QuarterSettings.prototype.setupByJSON = function(config) {
-  anychart.core.quadrant.QuarterSettings.base(this, 'setupByJSON', config);
+anychart.core.utils.QuarterSettings.prototype.setupByJSON = function(config) {
+  anychart.core.utils.QuarterSettings.base(this, 'setupByJSON', config);
   this.rightTop(config['rightTop']);
   this.leftTop(config['leftTop']);
   this.leftBottom(config['leftBottom']);
@@ -175,15 +175,22 @@ anychart.core.quadrant.QuarterSettings.prototype.setupByJSON = function(config) 
 
 
 /** @inheritDoc */
-anychart.core.quadrant.QuarterSettings.prototype.disposeInternal = function() {
+anychart.core.utils.QuarterSettings.prototype.disposeInternal = function() {
   goog.disposeAll(this.rightTop_, this.leftTop_, this.leftBottom_, this.rightBottom_);
   this.rightTop_ = null;
   this.leftTop_ = null;
   this.leftBottom_ = null;
   this.rightBottom_ = null;
   this.quarters_.length = 0;
-  anychart.core.quadrant.QuarterSettings.base(this, 'disposeInternal');
+  anychart.core.utils.QuarterSettings.base(this, 'disposeInternal');
 };
 //endregion
-
-
+//region --- Exports
+(function() {
+  var proto = anychart.core.utils.QuarterSettings.prototype;
+  proto['rightTop'] = proto.rightTop;
+  proto['leftTop'] = proto.leftTop;
+  proto['leftBottom'] = proto.leftBottom;
+  proto['rightBottom'] = proto.rightBottom;
+})();
+//endregion

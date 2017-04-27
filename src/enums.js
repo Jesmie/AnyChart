@@ -5782,47 +5782,6 @@ anychart.enums.normalizeMilestoneShape = function(value) {
 };
 
 
-/**
- * A enum for quadrant quarters.
- * @enum {string}
- */
-anychart.enums.Quarter = {
-  RIGHT_TOP: 'rightTop',
-  LEFT_TOP: 'leftTop',
-  LEFT_BOTTOM: 'leftBottom',
-  RIGHT_BOTTOM: 'rightBottom'
-};
-
-
-/**
- * Normalizes quarter.
- * @param {string} value Value to normalize.
- * @return {anychart.enums.Quarter} Normalized quarter.
- */
-anychart.enums.normalizeQuarter = function(value) {
-  value = String(value).toLowerCase();
-  switch (value) {
-    case 'lt':
-    case 'lefttop':
-    case 'left_top':
-      return anychart.enums.Quarter.LEFT_TOP;
-    case 'lb':
-    case 'leftbottom':
-    case 'left_bottom':
-      return anychart.enums.Quarter.LEFT_BOTTOM;
-    case 'rb':
-    case 'rightbottom':
-    case 'right_bottom':
-      return anychart.enums.Quarter.RIGHT_BOTTOM;
-    case 'rt':
-    case 'righttop':
-    case 'right_top':
-    default:
-      return anychart.enums.Quarter.RIGHT_TOP;
-  }
-};
-
-
 // DVF-1826
 // goog.exportSymbol('anychart.enums.XGroupingMode.FIRST', anychart.enums.XGroupingMode.FIRST);
 // goog.exportSymbol('anychart.enums.XGroupingMode.LAST', anychart.enums.XGroupingMode.LAST);
@@ -6901,7 +6860,7 @@ goog.exportSymbol('anychart.enums.VAlign.BOTTOM', anychart.enums.VAlign.BOTTOM);
 goog.exportSymbol('anychart.enums.TextWrap.NO_WRAP', anychart.enums.TextWrap.NO_WRAP);
 goog.exportSymbol('anychart.enums.TextWrap.BY_LETTER', anychart.enums.TextWrap.BY_LETTER);
 
-goog.exportSymbol('anychart.enums.Quarter.RIGHT_TOP', anychart.enums.Quarter.RIGHT_TOP);
-goog.exportSymbol('anychart.enums.Quarter.LEFT_TOP', anychart.enums.Quarter.LEFT_TOP);
-goog.exportSymbol('anychart.enums.Quarter.LEFT_BOTTOM', anychart.enums.Quarter.LEFT_BOTTOM);
-goog.exportSymbol('anychart.enums.Quarter.RIGHT_BOTTOM', anychart.enums.Quarter.RIGHT_BOTTOM);
+
+
+
+

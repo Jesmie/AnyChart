@@ -1674,8 +1674,12 @@ goog.provide('anychart.themes.defaultTheme');
       'hoverLabels': {'enabled': null},
       'selectLabels': {'enabled': null},
 
+      'crossing': {
+        'stroke': 'none'
+      },
+
       'defaultQuarterSettings': {
-        'enabled': true,
+        'enabled': false,
         'zIndex': 1,
         'fill': 'none',
         'stroke': 'none',
@@ -2420,6 +2424,9 @@ goog.provide('anychart.themes.defaultTheme');
         }],
       'xScale': 0,
       'yScale': 1,
+      'defaultQuarterSettings': {
+        'enabled': true
+      },
       'defaultXAxisSettings': {
         'ticks': false,
         'labels': false,
