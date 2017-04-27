@@ -202,12 +202,14 @@ anychart.data.buildMapping = function(dataSet, fromIndex, toIndex, names, opt_ke
  * @return {?Array.<Array.<string|number>>} .
  */
 anychart.data.parseText = function(text, opt_settings) {
-  var isCsv = goog.isString(opt_settings) ?
-      opt_settings == 'csv' :
-      !opt_settings || !opt_settings.mode || !opt_settings.mode == 'csv';
+  var mode = goog.isDef(opt_settings) ?
+      goog.isString(opt_settings) ?
+          anychart.enums.normalizeTextParsingMode(opt_settings) :
+          anychart.enums.normalizeTextParsingMode(opt_settings.mode) :
+      'csv';
 
   var result;
-  if (isCsv) {
+  if (mode == 'csv') {
     try {
       var parser = new anychart.data.csv.Parser();
       if (goog.isObject(opt_settings)) {
@@ -233,6 +235,7 @@ anychart.data.parseText = function(text, opt_settings) {
     var minLength = 0;
     var maxLength = NaN;
     var cutLength = NaN;
+    var maxItems = NaN;
     var ignoreItems;
 
     if (opt_settings) {
@@ -243,22 +246,36 @@ anychart.data.parseText = function(text, opt_settings) {
       if (opt_settings['minLength']) minLength = opt_settings['minLength'];
       if (opt_settings['maxLength']) maxLength = opt_settings['maxLength'];
       if (opt_settings['cutLength']) cutLength = opt_settings['cutLength'];
+      if (opt_settings['maxItems']) maxItems = opt_settings['maxItems'];
     }
 
-    text.split(anychart.data.WORD_SEPARATORS).forEach(function(t) {
-      t = t.replace(anychart.data.PUNCTUATION, '');
-      var l = t.length;
-      if ((!ignoreItems || !ignoreItems.test(t.toLowerCase())) && !(l > maxLength) && !(l < minLength)) {
-        if (!isNaN(cutLength))
-          t = t.substr(0, cutLength);
-        e[t.toLowerCase()] = t;
-        tags[t = t.toLowerCase()] = (tags[t] || 0) + 1;
+    if (mode == anychart.enums.TextParsingMode.BY_WORD) {
+      text.split(anychart.data.WORD_SEPARATORS).forEach(function(t) {
+        t = t.replace(anychart.data.PUNCTUATION, '');
+        var l = t.length;
+        if ((!ignoreItems || !ignoreItems.test(t.toLowerCase())) && !(l > maxLength) && !(l < minLength)) {
+          if (!isNaN(cutLength))
+            t = t.substr(0, cutLength);
+          e[t.toLowerCase()] = t;
+          tags[t = t.toLowerCase()] = (tags[t] || 0) + 1;
+        }
+      });
+    } else {
+      for (var i = 0, len = text.length; i < len; i++) {
+        var t = text[i];
+        if (!ignoreItems || !ignoreItems.test(t.toLowerCase())) {
+          e[t.toLowerCase()] = t;
+          tags[t = t.toLowerCase()] = (tags[t] || 0) + 1;
+        }
       }
-    });
+    }
 
     tags = anychart.utils.entries(tags).sort(function(t, e) {
       return e.value - t.value;
     });
+
+    if (!isNaN(maxItems))
+      tags = goog.array.slice(tags, 0, maxItems);
 
     result = [];
     goog.array.forEach(tags, function(t) {
@@ -273,3 +290,4 @@ anychart.data.parseText = function(text, opt_settings) {
 //exports
 goog.exportSymbol('anychart.data.mapAsTable', anychart.data.mapAsTable);//doc|ex
 goog.exportSymbol('anychart.data.buildMapping', anychart.data.buildMapping);
+goog.exportSymbol('anychart.data.parseText', anychart.data.parseText);

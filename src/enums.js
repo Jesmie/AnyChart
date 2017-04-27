@@ -3430,7 +3430,27 @@ anychart.enums.normalizeErrorMode = function(value, opt_default) {
 anychart.enums.TextParsingMode = {
   CSV: 'csv',
   BY_WORD: 'byWord',
-  BY_CHAR: 'byChart'
+  BY_CHAR: 'byChar'
+};
+
+
+/**
+ * Normalizes text parsing mode
+ * @param {*} value Value to normalize.
+ * @param {anychart.enums.TextParsingMode=} opt_default Custom default value (defaults to CSV).
+ * @return {anychart.enums.TextParsingMode}
+ */
+anychart.enums.normalizeTextParsingMode = function(value, opt_default) {
+  value = (String(value)).toLowerCase();
+  switch (value) {
+    case 'csv':
+      return anychart.enums.TextParsingMode.CSV;
+    case 'byword':
+      return anychart.enums.TextParsingMode.BY_WORD;
+    case 'bychart':
+      return anychart.enums.TextParsingMode.BY_CHAR;
+  }
+  return opt_default || anychart.enums.TextParsingMode.CSV;
 };
 
 
