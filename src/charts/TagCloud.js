@@ -452,6 +452,7 @@ anychart.charts.TagCloud.prototype.calculate = function() {
         .setTransformationMatrix(scale_, 0, 0, scale_, w >> 1, h >> 1);
 
 
+    // text.domElement().setAttribute('transform', "translate(" + [t.x, t.y] + ")rotate(" + t.rotate + ")");
     text.domElement().setAttribute('y', 0);
     text.domElement().setAttribute('text-anchor', 'middle');
   }, this);
