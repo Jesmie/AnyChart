@@ -1098,10 +1098,6 @@ anychart.utils.xml2json = function(xml) {
               result[name] = [result[name], subnode];
               multiProp[name] = true;
             }
-          } else if (node.nodeName == 'data') {
-            // always treat data as array
-            result[name] = [subnode];
-            multiProp[name] = true;
           } else {
             result[name] = subnode;
           }
@@ -1361,8 +1357,6 @@ anychart.utils.getNodeNames_ = function(arrayPropName) {
       return ['depends_on', 'item'];
     case 'precision':
       return ['precision_list', 'precision'];
-    case 'quarters':
-      return ['quarters', 'quarter'];
   }
   return null;
 };
@@ -1450,8 +1444,6 @@ anychart.utils.getArrayPropName_ = function(nodeName) {
       return ['dependsOn', 'item'];
     case 'precisionList':
       return ['precision', 'precision'];
-    case 'quarters':
-      return ['quarters', 'quarter'];
   }
   return null;
 };

@@ -913,7 +913,8 @@ anychart.core.ChartWithAxes.prototype.getBoundsChangedSignal = function() {
       anychart.ConsistencyState.AXES_CHART_AXES_MARKERS |
       anychart.ConsistencyState.SERIES_CHART_SERIES |
       anychart.ConsistencyState.AXES_CHART_ANNOTATIONS |
-      anychart.ConsistencyState.AXES_CHART_CROSSHAIR;
+      anychart.ConsistencyState.AXES_CHART_CROSSHAIR |
+      anychart.ConsistencyState.AXES_CHART_CROSSLINES;
 };
 
 
@@ -1070,10 +1071,6 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
     this.markConsistent(anychart.ConsistencyState.AXES_CHART_ANNOTATIONS);
   }
 
-  if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
-    this.invalidate(anychart.ConsistencyState.AXES_CHART_CROSSLINES);
-  }
-
   if (this.hasInvalidationState(anychart.ConsistencyState.AXES_CHART_CROSSLINES)) {
     if (!this.crosslines_) {
       this.crosslines_ = this.rootElement.path();
@@ -1218,20 +1215,6 @@ anychart.core.ChartWithAxes.prototype.crossing = function(opt_value) {
 };
 
 
-/**
- * Getter/setter for quarter default settings.
- * @param {Object=} opt_value Object with quarter settings.
- * @return {Object}
- */
-anychart.core.ChartWithAxes.prototype.defaultQuarterSettings = function(opt_value) {
-  if (goog.isDef(opt_value)) {
-    this.defaultQuarterSettings_ = opt_value;
-    return this;
-  }
-  return this.defaultQuarterSettings_ || {};
-};
-
-
 //endregion
 //region --- Serialization / Deserialization / Disposing
 //----------------------------------------------------------------------------------------------------------------------
@@ -1242,8 +1225,6 @@ anychart.core.ChartWithAxes.prototype.defaultQuarterSettings = function(opt_valu
 /** @inheritDoc */
 anychart.core.ChartWithAxes.prototype.setupByJSON = function(config, opt_default) {
   anychart.core.ChartWithAxes.base(this, 'setupByJSON', config, opt_default);
-  if ('defaultQuarterSettings' in config)
-    this.defaultQuarterSettings(config['defaultQuarterSettings']);
   this.crossing(config['crossing']);
   this.quarters(config['quarters']);
 };

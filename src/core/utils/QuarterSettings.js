@@ -75,7 +75,6 @@ anychart.core.utils.QuarterSettings.prototype.getItems = function() {
 anychart.core.utils.QuarterSettings.prototype.rightTop = function(opt_value) {
   if (!this.rightTop_) {
     this.rightTop_ = new anychart.core.utils.Quarter();
-    this.rightTop_.setup(this.chart_.defaultQuarterSettings());
     this.rightTop_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[0] = this.rightTop_;
   }
@@ -95,7 +94,6 @@ anychart.core.utils.QuarterSettings.prototype.rightTop = function(opt_value) {
 anychart.core.utils.QuarterSettings.prototype.leftTop = function(opt_value) {
   if (!this.leftTop_) {
     this.leftTop_ = new anychart.core.utils.Quarter();
-    this.leftTop_.setup(this.chart_.defaultQuarterSettings());
     this.leftTop_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[1] = this.leftTop_;
   }
@@ -115,7 +113,6 @@ anychart.core.utils.QuarterSettings.prototype.leftTop = function(opt_value) {
 anychart.core.utils.QuarterSettings.prototype.leftBottom = function(opt_value) {
   if (!this.leftBottom_) {
     this.leftBottom_ = new anychart.core.utils.Quarter();
-    this.leftBottom_.setup(this.chart_.defaultQuarterSettings());
     this.leftBottom_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[2] = this.leftBottom_;
   }
@@ -135,7 +132,6 @@ anychart.core.utils.QuarterSettings.prototype.leftBottom = function(opt_value) {
 anychart.core.utils.QuarterSettings.prototype.rightBottom = function(opt_value) {
   if (!this.rightBottom_) {
     this.rightBottom_ = new anychart.core.utils.Quarter();
-    this.rightBottom_.setup(this.chart_.defaultQuarterSettings());
     this.rightBottom_.listenSignals(this.chart_.quarterInvalidated, this.chart_);
     this.quarters_[3] = this.rightBottom_;
   }
