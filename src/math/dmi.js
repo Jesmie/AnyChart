@@ -16,14 +16,21 @@ anychart.math.dmi.Context;
 
 /**
  * Creates context for DMI indicator calculation.
- * @param {number=} opt_period [20] Indicator period. Defaults to 20.
+ * @param {number=} opt_period [14] Indicator period. Defaults to 14.
+ * @param {number=} opt_adxPeriod [14] Indicator adx period. Defaults to 14.
+ * @param {boolean=} opt_useWildersSmoothing [true] Use Wilders smoothing. Defaults to true.
  * @return {anychart.math.dmi.Context}
  */
-anychart.math.dmi.initContext = function(opt_period) {
-  var period = anychart.utils.normalizeToNaturalNumber(opt_period, 20, false);
+anychart.math.dmi.initContext = function(opt_period, opt_adxPeriod, opt_useWildersSmoothing) {
+  var period = anychart.utils.normalizeToNaturalNumber(opt_period, 14, false);
+  var adxPeriod = anychart.utils.normalizeToNaturalNumber(opt_adxPeriod, 14 , false);
+  var useWildersSmoothing = !opt_useWildersSmoothing;
   return {
-    queue: anychart.math.cycledQueue(period),
+    queue: anychart.math.cycledQueue(period + 1),
+    adxQueue: anychart.math.cycledQueue(adxPeriod),
     period: period,
+    adxPeriod: adxPeriod,
+    useWildersSmoothing: useWildersSmoothing,
     prevResult: NaN,
     /**
      * @this {anychart.math.dmi.Context}
@@ -42,6 +49,7 @@ anychart.math.dmi.initContext = function(opt_period) {
  */
 anychart.math.dmi.startFunction = function(context) {
   context.queue.clear();
+  context.adxQueue.clear();
   context.prevResult = NaN;
 };
 
@@ -49,11 +57,15 @@ anychart.math.dmi.startFunction = function(context) {
 /**
  * Calculates DMI value.
  * @param {Object} context
+ * @param {number} high
+ * @param {number} low
  * @param {number} value
  * @return {number}
  */
-anychart.math.dmi.calculate = function(context, value) {
-  //TODO: math
+anychart.math.dmi.calculate = function(context, high, low, value) {
+  if (isNaN(high) || isNaN(low) || isNaN(value))
+    return NaN;
+
 };
 
 
@@ -64,8 +76,10 @@ anychart.math.dmi.calculate = function(context, value) {
  * @this {anychart.math.dmi.Context}
  */
 anychart.math.dmi.calculationFunction = function(row, context) {
+  var high = anychart.utils.toNumber(row.get('high'));
+  var low = anychart.utils.toNumber(row.get('low'));
   var value = anychart.utils.toNumber(row.get('value'));
-  var rv = anychart.math.dmi.calculate(context, value);
+  var rv = anychart.math.dmi.calculate(context, high, low, value);
   row.set('result', rv);
 };
 
