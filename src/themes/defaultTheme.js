@@ -3297,6 +3297,10 @@ goog.provide('anychart.themes.defaultTheme');
 
     // merge with chart
     'heatMap': {
+      'annotations': {
+        'annotationsList': [],
+        'zIndex': 2000
+      },
       'isVertical': false,
       'scales': [
         {
