@@ -5041,8 +5041,7 @@ goog.provide('anychart.themes.defaultTheme');
       }
     },
 
-    'cloud': {
-      'ignoreList': []
+    'tagCloud': {
     },
 
     // standalone components

@@ -835,6 +835,7 @@ anychart.themes.merging.mergingMap_ = [
     targets: [
       'cartesianBase',
       'pieFunnelPyramidBase',
+      'tagCloud',
       'scatter',
       'radar',
       'polar',

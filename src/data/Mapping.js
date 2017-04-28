@@ -200,6 +200,7 @@ anychart.data.Mapping.prototype.checkFieldExist = function(name) {
  */
 anychart.data.Mapping.DEFAULT_ARRAY_MAPPING = {
   'x': [0],
+  'tag': [0],
   'value': [1, 0],
   'size': [2, 1], // bubble series
   'open': [1],

@@ -41,7 +41,8 @@ goog.inherits(anychart.charts.TagCloud, anychart.core.SeparateChart);
  * @type {number}
  */
 anychart.charts.TagCloud.prototype.SUPPORTED_CONSISTENCY_STATES =
-    anychart.core.Chart.prototype.SUPPORTED_CONSISTENCY_STATES;
+    anychart.core.SeparateChart.prototype.SUPPORTED_CONSISTENCY_STATES |
+    anychart.ConsistencyState.TAG_CLOUD_DATA;
 
 
 /** @inheritDoc */
@@ -53,6 +54,18 @@ anychart.charts.TagCloud.prototype.getType = function() {
 /** @inheritDoc */
 anychart.charts.TagCloud.prototype.getAllSeries = function() {
   return [];
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.getPoint = function() {
+  return null;
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.getSeriesStatus = function() {
+  return null;
 };
 
 
@@ -114,7 +127,7 @@ anychart.charts.TagCloud.prototype.data = function(opt_value, opt_settings) {
             (goog.isArray(opt_value) || goog.isString(opt_value)) ? opt_value : null, opt_settings)).mapAs();
       }
       this.data_.listenSignals(this.dataInvalidated_, this);
-      this.invalidate(anychart.ConsistencyState.RESOURCE_DATA, anychart.Signal.NEEDS_REDRAW);
+      this.invalidate(anychart.ConsistencyState.TAG_CLOUD_DATA, anychart.Signal.NEEDS_REDRAW);
     }
     return this;
   }
@@ -122,16 +135,13 @@ anychart.charts.TagCloud.prototype.data = function(opt_value, opt_settings) {
 };
 
 
+anychart.charts.TagCloud.prototype.angles = function() {
+  
+}
+
+
 //endregion
 //region --- Utils
-
-
-
-
-
-
-
-
 anychart.charts.TagCloud.prototype.cloudSprite = function(contextAndRatio, d, data, di) {
   if (d.sprite) return;
   var c = contextAndRatio.context,
@@ -317,12 +327,12 @@ anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
         x: 0,
         y: 0
       }, {
-        x: this.size[0],
-        y: this.size[1]
+        x: this.w,
+        y: this.h
       }],
       startX = tag.x,
       startY = tag.y,
-      maxDelta = Math.sqrt(this.size[0] * this.size[0] + this.size[1] * this.size[1]),
+      maxDelta = Math.sqrt(this.w * this.w + this.h * this.h),
       s = this.archimedeanSpiral(this.size),
       // dt = Math.random() < .5 ? 1 : -1,
       dt = 1,
@@ -340,12 +350,12 @@ anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
     tag.x = startX + dx;
     tag.y = startY + dy;
 
-    if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 || tag.x + tag.x1 > this.size[0] || tag.y + tag.y1 > this.size[1]) continue;
-    if (!bounds || !this.cloudCollide(tag, board, this.size[0])) {
+    if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 || tag.x + tag.x1 > this.w || tag.y + tag.y1 > this.h) continue;
+    if (!bounds || !this.cloudCollide(tag, board, this.w)) {
       if (!bounds || this.collideRects(tag, bounds)) {
         var sprite = tag.sprite,
             w = tag.width >> 5,
-            sw = this.size[0] >> 5,
+            sw = this.w >> 5,
             lx = tag.x - (w << 4),
             sx = lx & 0x7f,
             msx = 32 - sx,
@@ -367,54 +377,76 @@ anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
   return false;
 };
 
+
 //endregion
 //region --- Calculate
 /**
  * Calculating.
  */
 anychart.charts.TagCloud.prototype.calculate = function() {
-  var contextAndRatio = this.getContext(this.cloudCanvas());
-  var board = this.zeroArray((this.size[0] >> 5) * this.size[1]);
-  var bounds = null;
+  if (this.hasInvalidationState(anychart.ConsistencyState.TAG_CLOUD_DATA)) {
+    var iterator = this.data_.getIterator();
 
-  var parentView = this.parentViewToDispose_.data();
-  var normalizedData = [];
-  parentView.forEach(function(item) {
-    normalizedData.push({key: item[0], value: item[1]})
-  });
-  var max = normalizedData[0].value;
+    var normalizedData = [];
+    while (iterator.advance()) {
+      var key = iterator.get('tag');
+      var value = iterator.get('value');
+      normalizedData.push({
+        rowIndex: iterator.getIndex(),
+        key: key,
+        value: value
+      });
+    }
+    var max = normalizedData[0].value;
+    var scale = this.scale;
 
-  var n = normalizedData.length;
+    this.dataFormatted_ = normalizedData.map(function(d, i) {
+      d.text = d.key;
+      d.font = 'Times new roman';
+      d.style = 'normal';
+      d.weight = 'normal';
+      d.rotate = (~~(Math.random() * 6) - 3) * 30;
+      // d.rotate = 45;
+      d.size = ~~scale.inverseTransform(d.value / max);
+      d.sizeRatio = d.value / max;
+      d.padding = 1;
+      return d;
+    }).sort(function(a, b) {
+      return b.size - a.size;
+    });
+
+    this.markConsistent(anychart.ConsistencyState.TAG_CLOUD_DATA);
+  }
+
+  // this.dataFormatted_.forEach(function(t) {
+  //   delete t.x;
+  //   delete t.x0;
+  //   delete t.x1;
+  //   delete t.xoff;
+  //   delete t.y;
+  //   delete t.y0;
+  //   delete t.y1;
+  //   delete t.yoff;
+  //   delete t.hasText;
+  //   delete t.height;
+  //   delete t.width;
+  // });
+
+  var n = this.dataFormatted_.length;
   var i = -1;
-  var tags = [];
-
-  var scale = this.scale;
-
-  var data = normalizedData.map(function(d, i) {
-    d.text = d.key;
-    d.font = 'Times new roman';
-    d.style = 'normal';
-    d.weight = 'normal';
-    // d.rotate = (~~(Math.random() * 6) - 3) * 30;
-    d.rotate = 45;
-    d.size = ~~scale.inverseTransform(d.value / max);
-    d.sizeRatio = d.value / max;
-    d.padding = 1;
-    return d;
-  }).sort(function(a, b) {
-    return b.size - a.size;
-  });
-
+  var bounds = null;
+  var contextAndRatio = this.getContext(this.cloudCanvas());
+  var board = this.zeroArray((this.w >> 5) * this.h);
 
   while (++i < n) {
-    var d = data[i];
-    // d.x = (this.size[0] * (Math.random() + .5)) >> 1;
-    // d.y = (this.size[1] * (Math.random() + .5)) >> 1;
-    d.x = (this.size[0] * 1.5) >> 1;
-    d.y = (this.size[1] * 1.5) >> 1;
-    this.cloudSprite(contextAndRatio, d, data, i);
+    var d = this.dataFormatted_[i];
+    // d.x = (this.w * (Math.random() + .5)) >> 1;
+    // d.y = (this.h * (Math.random() + .5)) >> 1;
+    d.x = this.w >> 1;
+    d.y = this.h >> 1;
+    this.cloudSprite(contextAndRatio, d, this.dataFormatted_, i);
     if (d.hasText && this.place(board, d, bounds)) {
-      tags.push(d);
+      // tags.push(d);
       // event.call("word", cloud, d);
       if (bounds) this.cloudBounds(bounds, d);
       else bounds = [{
@@ -425,36 +457,56 @@ anychart.charts.TagCloud.prototype.calculate = function() {
         y: d.y + d.y1
       }];
       // Temporary hack
-      d.x -= this.size[0] >> 1;
-      d.y -= this.size[1] >> 1;
+      d.x -= this.w >> 1;
+      d.y -= this.h >> 1;
     }
   }
 
-  var w = this.size[0];
-  var h = this.size[1];
+  var w = this.w;
+  var h = this.h;
 
   var scale_ = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
 
   var container = this.container().layer();
-  data.forEach(function(t) {
-    var text = container.text();
-    var fill = this.colorScale.valueToColor(t.sizeRatio);
-
-    text
-        .translate(t.x, t.y)
-        .rotateByAnchor(t.rotate)
-        .fontSize(t.size)
-        .fontFamily(t.font)
-        .text(t.text.toLowerCase())
-        .color(fill);
-
-    container
-        .setTransformationMatrix(scale_, 0, 0, scale_, w >> 1, h >> 1);
+  container
+      .setTransformationMatrix(scale_, 0, 0, scale_, this.internalBounds_.left + (w >> 1), this.internalBounds_.top + (h >> 1));
 
 
-    // text.domElement().setAttribute('transform', "translate(" + [t.x, t.y] + ")rotate(" + t.rotate + ")");
-    text.domElement().setAttribute('y', 0);
-    text.domElement().setAttribute('text-anchor', 'middle');
+  this.dataFormatted_.forEach(function(t) {
+    var text;
+    // if (t.textEl) t.textEl.dispose();
+    // var text = t.textEl = container.text();
+
+    if (t.textEl) {
+      t.textEl.parent(null);
+      t.textEl.parent(container);
+
+      t.textEl.domElement().setAttribute('transform', 'translate(' + [t.x, t.y] + ') rotate(' + t.rotate + ')');
+
+      // t.textEl.setTransformationMatrix(1, 0, 0, 1, 0, 0);
+      // t.textEl
+      //     .translate(t.x, t.y)
+      //     .rotateByAnchor(t.rotate);
+    } else {
+      text = t.textEl = container.text();
+
+      var fill = this.colorScale.valueToColor(t.sizeRatio);
+      text
+          .translate(t.x, t.y)
+          .rotateByAnchor(t.rotate)
+          .fontSize(t.size)
+          .fontFamily(t.font)
+          .text(t.text.toLowerCase())
+          .color(fill);
+
+      // text.domElement().setAttribute('transform', "translate(" + [t.x, t.y] + ")rotate(" + t.rotate + ")");
+      // text.domElement().setAttribute('y', 0);
+      // text.domElement().setAttribute('text-anchor', 'middle');
+
+      // text.attr('transform', 'translate(' + [t.x, t.y] + ') rotate(' + t.rotate + ')');
+      text.attr('y', 0);
+      text.attr('text-anchor', 'middle');
+    }
   }, this);
 };
 
@@ -464,18 +516,20 @@ anychart.charts.TagCloud.prototype.calculate = function() {
 /**
  * Drawing.
  */
-anychart.charts.TagCloud.prototype.draw = function() {
+anychart.charts.TagCloud.prototype.drawContent = function(bounds) {
+  this.internalBounds_ = bounds;
+  this.w = bounds.width;
+  this.h = bounds.height;
+
   this.calculate();
-
-
 };
 
 
 //endregion
 //region --- Setup and Dispose
 /** @inheritDoc */
-anychart.charts.TagCloud.prototype.setupByJSON = function(config) {
-  anychart.charts.TagCloud.base(this, 'setupByJSON', config);
+anychart.charts.TagCloud.prototype.setupByJSON = function(config, opt_default) {
+  anychart.charts.TagCloud.base(this, 'setupByJSON', config, opt_default);
 };
 
 
@@ -493,6 +547,11 @@ anychart.charts.TagCloud.prototype.disposeInternal = function() {
 
 //endregion
 //region --- Exports
-
+//exports
+(function() {
+  var proto = anychart.charts.TagCloud.prototype;
+  proto['data'] = proto.data;
+  proto['getType'] = proto.getType;
+})();
 //exports
 //endregion

@@ -100,6 +100,8 @@ anychart.ConsistencyState = {
   GANTT_POSITION: 1 << 13,
   GANTT_SPLITTER_POSITION: 1 << 14,
   //---------------------------------- PIE STATES (CHART) ---------------------------------
+  TAG_CLOUD_DATA: 1 << 12,
+  //---------------------------------- PIE STATES (CHART) ---------------------------------
   PIE_LABELS: 1 << 12,
   PIE_DATA: 1 << 13,
   //---------------------------------- SPARKLINE STATES (CHART) ---------------------------------

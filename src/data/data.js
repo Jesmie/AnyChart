@@ -270,17 +270,17 @@ anychart.data.parseText = function(text, opt_settings) {
       }
     }
 
-    tags = anychart.utils.entries(tags).sort(function(t, e) {
-      return e.value - t.value;
+    result = [];
+    goog.object.forEach(tags, function(value, key) {
+      result.push([key, value]);
+    });
+
+    result = result.sort(function(t, e) {
+      return e[1] - t[1];
     });
 
     if (!isNaN(maxItems))
-      tags = goog.array.slice(tags, 0, maxItems);
-
-    result = [];
-    goog.array.forEach(tags, function(t) {
-      result.push([e[t.key], t.value]);
-    });
+      result = goog.array.slice(result, 0, maxItems);
   }
 
   return result;
