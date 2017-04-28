@@ -1068,6 +1068,18 @@ anychart.standalones.grids.polar = anychart.standalones.grids.polar || anychart.
 anychart.standalones.grids.radar = anychart.standalones.grids.radar || anychart.createNFIMError('anychart.standalones.grids.Radar');
 
 
+/** @ignoreDoc */
+anychart.mekko = anychart.mekko || anychart.createNFIMError('Mekko chart');
+
+
+/** @ignoreDoc */
+anychart.mosaic = anychart.mosaic || anychart.createNFIMError('Mosaic chart');
+
+
+/** @ignoreDoc */
+anychart.barmekko = anychart.barmekko || anychart.createNFIMError('Barmekko chart');
+
+
 //endregion
 //region ------ UI
 /** @ignoreDoc */
