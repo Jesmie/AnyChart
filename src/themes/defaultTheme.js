@@ -2424,9 +2424,6 @@ goog.provide('anychart.themes.defaultTheme');
         }],
       'xScale': 0,
       'yScale': 1,
-      'defaultQuarterSettings': {
-        'enabled': true
-      },
       'defaultXAxisSettings': {
         'ticks': false,
         'labels': false,
@@ -2464,7 +2461,13 @@ goog.provide('anychart.themes.defaultTheme');
         'rightTop': {
           'enabled': true
         },
+        'leftTop': {
+          'enabled': true
+        },
         'leftBottom': {
+>          'enabled': true
+        },
+        'rightBottom': {
           'enabled': true
         }
       }

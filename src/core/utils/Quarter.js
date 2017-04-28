@@ -320,8 +320,12 @@ anychart.core.utils.Quarter.prototype.setupByJSON = function(config, opt_default
   if ('defaultLabelSettings' in config)
     this.defaultLabelSettings(config['defaultLabelSettings']);
 
-  if ('title' in config)
-    this.title().setupByJSON(config['title'], opt_default);
+  if ('title' in config) {
+    if (goog.isDef(opt_default))
+      this.title().setupByJSON(config['title'], opt_default);
+    else
+      this.title(config['title']);
+  }
 
   if ('padding' in config)
     this.padding().setupByJSON(config['padding'], opt_default);
