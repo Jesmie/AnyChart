@@ -2465,7 +2465,7 @@ goog.provide('anychart.themes.defaultTheme');
           'enabled': true
         },
         'leftBottom': {
->          'enabled': true
+          'enabled': true
         },
         'rightBottom': {
           'enabled': true
