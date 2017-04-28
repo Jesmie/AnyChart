@@ -1096,8 +1096,10 @@ anychart.core.ChartWithAxes.prototype.drawContent = function(bounds) {
           .lineTo(right, middleY);
     }
 
-    if (this.crosslines_)
+    if (this.crosslines_) {
       this.crosslines_.stroke(stroke);
+      this.crosslines_.clip(this.dataBounds);
+    }
 
     this.calculateQuarterBounds(thickness);
     this.invalidate(anychart.ConsistencyState.AXES_CHART_QUARTER);
