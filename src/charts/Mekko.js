@@ -319,11 +319,11 @@ anychart.charts.Mekko.prototype.calculate = function() {
     for (i = 0; i < this.drawingPlans.length; i++) {
       seriesData = this.drawingPlans[i].data;
       for (j = 0; j < seriesData.length; j++) {
-        var value;
+        var value = anychart.utils.toNumber(seriesData[j].data['value']);
         if (this.barmekkoMode_)
-          value = Math.abs(seriesData[j].data['value']);
+          value = Math.abs(value);
         else
-          value = seriesData[j].data['value'] > 0 ? seriesData[j].data['value'] : 0;
+          value = value > 0 ? value : 0;
 
         if (weights[j] == void 0) {
           weights.push(value);
