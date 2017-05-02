@@ -2499,7 +2499,7 @@ goog.provide('anychart.themes.defaultTheme');
            * @return {*}
            */
           'fill': function() {
-            var color = this['chart'].getSeriesCount() > 1 ? this['sourceColor'] : this['chart'].palette().itemAt(this['iterator'].currentIndex);
+            var color = this['chart']['getSeriesCount']() > 1 ? this['sourceColor'] : this['chart'].palette().itemAt(this['iterator'].currentIndex);
             color = color ? color : this['sourceColor'];
             return global['anychart']['color']['setOpacity'](color, 0.85, true);
           },
@@ -2508,7 +2508,7 @@ goog.provide('anychart.themes.defaultTheme');
            * @return {*}
            */
           'hoverFill': function() {
-            var color = this['chart'].getSeriesCount() > 1 ? this['sourceColor'] : this['chart'].palette().itemAt(this['iterator'].currentIndex);
+            var color = this['chart']['getSeriesCount']() > 1 ? this['sourceColor'] : this['chart'].palette().itemAt(this['iterator'].currentIndex);
             color = color ? color : this['sourceColor'];
             return global['anychart']['color']['setOpacity'](color, 0.65, true);
           },
@@ -2517,7 +2517,7 @@ goog.provide('anychart.themes.defaultTheme');
            * @return {*}
            */
           'stroke': function() {
-            var color = this['chart'].getSeriesCount() > 1 ? this['sourceColor'] : this['chart'].palette().itemAt(this['iterator'].currentIndex);
+            var color = this['chart']['getSeriesCount']() > 1 ? this['sourceColor'] : this['chart'].palette().itemAt(this['iterator'].currentIndex);
             color = color ? color : this['sourceColor'];
             return global['anychart']['color']['setThickness'](color, 1);
           },
