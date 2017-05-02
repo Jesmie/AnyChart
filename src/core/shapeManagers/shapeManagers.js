@@ -138,7 +138,7 @@ anychart.core.shapeManagers.MARKERS_ZINDEX = 11 * anychart.core.shapeManagers.ZI
  * Z index shift for the map labels.
  * @const {number}
  */
-anychart.core.shapeManagers.MAP_LABELS_ZINDEX = 12 * anychart.core.shapeManagers.ZINDEX_STEP;
+anychart.core.shapeManagers.LABELS_OVER_MARKERS_ZINDEX = 12 * anychart.core.shapeManagers.ZINDEX_STEP;
 
 
 /**

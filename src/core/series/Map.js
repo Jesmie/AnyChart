@@ -61,7 +61,7 @@ anychart.core.series.Map.prototype.SUPPORTED_CONSISTENCY_STATES =
 /**
  * Labels z-index.
  */
-anychart.core.series.Map.prototype.LABELS_ZINDEX = anychart.core.shapeManagers.MAP_LABELS_ZINDEX;
+anychart.core.series.Map.prototype.LABELS_ZINDEX = anychart.core.shapeManagers.LABELS_OVER_MARKERS_ZINDEX;
 
 
 //endregion

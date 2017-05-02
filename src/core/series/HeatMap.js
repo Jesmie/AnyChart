@@ -59,6 +59,12 @@ anychart.core.series.HeatMap.PROPERTY_DESCRIPTORS = (function() {
 anychart.core.settings.populate(anychart.core.series.HeatMap, anychart.core.series.HeatMap.PROPERTY_DESCRIPTORS);
 
 
+/**
+ * Labels z-index.
+ */
+anychart.core.series.HeatMap.prototype.LABELS_ZINDEX = anychart.core.shapeManagers.LABELS_OVER_MARKERS_ZINDEX;
+
+
 /** @inheritDoc */
 anychart.core.series.HeatMap.prototype.labels = function(opt_value) {
   var res = (/** @type {anychart.charts.HeatMap} */(this.chart)).labels(opt_value);
