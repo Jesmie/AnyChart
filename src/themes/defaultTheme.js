@@ -223,6 +223,15 @@ goog.provide('anychart.themes.defaultTheme');
    * @this {*}
    * @return {*}
    */
+  var returnLightenSourceColor50 = function() {
+    return global['anychart']['color']['setOpacity'](global['anychart']['color']['lighten'](this['sourceColor']), 0.5, true);
+  };
+
+
+  /**
+   * @this {*}
+   * @return {*}
+   */
   var returnStrokeSourceColor = function() {
     return global['anychart']['color']['setThickness'](this['sourceColor'], 1.5);
   };
@@ -5058,12 +5067,8 @@ goog.provide('anychart.themes.defaultTheme');
         'mode': 'chartElements'
       },
       'color': '#64b5f6',
-      'fill': function() {
-        return this['paletteFill'];
-      },
-      'hoverFill': function() {
-        return global['anychart']['color']['lighten'](this['paletteFill']);
-      },
+      'fill': returnSourceColor50,
+      'hoverFill': returnLightenSourceColor50,
       'selectFill': defaultSelectColor,
       'tooltip': {
         'titleFormat': '{%X}',
@@ -5074,16 +5079,27 @@ goog.provide('anychart.themes.defaultTheme');
       'selectStroke': 'none',
       'labels': {
         'fontColor': '#f4f4f4',
-        'format': function() {
-          var splitter = this['chart']['dataSeparator']();
-          var splitted = this['x'].split(splitter);
-          return (splitted.length == 1) ? this['x'] : '';
-        },
+        'format': '{%X}',
         'anchor': 'center',
         'enabled': true,
         'disablePointerEvents': true,
         'zIndex': 100,
-        'fontWeight': 'normal'
+        'fontWeight': 'bold'
+      },
+      'intersections': {
+        'fill': '#fff 0.00001',
+        'hoverFill': '#fff 0.5',
+        'selectFill': defaultSelectColor,
+        'stroke': 'none',
+        'hoverStroke': 'none',
+        'selectStroke': 'none',
+        'labels': {
+          'fontWeight': 'normal',
+          'format': '{%Value}'
+        },
+        'tooltip': {
+          'titleFormat': 'Intersection: {%X}'
+        }
       },
       'legend': {
         'enabled': true,

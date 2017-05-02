@@ -8,6 +8,7 @@ goog.require('anychart.core.shapeManagers');
 goog.require('anychart.core.ui.LabelsFactory');
 goog.require('anychart.core.utils.IInteractiveSeries');
 goog.require('anychart.core.utils.InteractivityState');
+goog.require('anychart.core.venn.Intersections');
 goog.require('anychart.data.Set');
 goog.require('anychart.format.Context');
 goog.require('anychart.math.venn');
@@ -91,6 +92,13 @@ anychart.charts.Venn = function(opt_data, opt_csvSettings) {
    */
   this.state = new anychart.core.utils.InteractivityState(this);
 
+  /**
+   * Intersections settings.
+   * @type {anychart.core.venn.Intersections}
+   * @private
+   */
+  this.intersections_ = null;
+
   this.bindHandlersToComponent(this, this.handleMouseOverAndMove, this.handleMouseOut, null, this.handleMouseOverAndMove, null, this.handleMouseDown);
 
 };
@@ -139,7 +147,8 @@ anychart.charts.Venn.prototype.SUPPORTED_CONSISTENCY_STATES =
     anychart.core.SeparateChart.prototype.SUPPORTED_CONSISTENCY_STATES |
     anychart.ConsistencyState.VENN_DATA |
     anychart.ConsistencyState.VENN_APPEARANCE |
-    anychart.ConsistencyState.VENN_LABELS;
+    anychart.ConsistencyState.VENN_LABELS |
+    anychart.ConsistencyState.VENN_MARKERS;
 
 
 //endregion
@@ -176,7 +185,7 @@ anychart.charts.Venn.prototype.isSizeBased = function() {
 
 /** @inheritDoc **/
 anychart.charts.Venn.prototype.applyAppearanceToSeries = function(pointState) {
-  debugger;
+
 };
 
 
@@ -286,7 +295,7 @@ anychart.charts.Venn.prototype.getThemeOption = function(name) {
 
 /** @inheritDoc */
 anychart.charts.Venn.prototype.getOption = function(name) {
-  return goog.isDefAndNotNull(this.ownSettings[name]) ? this.ownSettings[name] : this.themeSettings[name];
+  return goog.isDef(this.ownSettings[name]) ? this.ownSettings[name] : this.themeSettings[name];
 };
 
 
@@ -320,7 +329,11 @@ anychart.charts.Venn.prototype.getIterator = function() {
 
 /** @inheritDoc */
 anychart.charts.Venn.prototype.resolveOption = function(name, point, normalizer, opt_seriesName) {
-  var val = point.get(name) || this.getOption(name);
+  var iterator = this.getIterator();
+  var source = this;
+  if (iterator.meta('isIntersection'))
+    source = this.intersections();
+  var val = point.get(name) || source.getOption(name);
   if (goog.isDef(val))
     val = normalizer(val);
   return val;
@@ -347,13 +360,12 @@ anychart.charts.Venn.prototype.getHatchFillResolutionContext = function(opt_igno
 
 /** @inheritDoc */
 anychart.charts.Venn.prototype.getColorResolutionContext = function(opt_baseColor, opt_ignorePointSettings, opt_ignoreColorScale) {
-  var source = opt_baseColor || this.getOption('color') || 'blue';
   var iterator = this.getIterator();
+  var source = opt_baseColor || iterator.meta('paletteFill') || this.getOption('color') || 'blue';
   return {
     'index': iterator.getIndex(),
     'sourceColor': source,
-    'iterator': iterator,
-    'paletteFill': iterator.meta('paletteFill')
+    'iterator': iterator
   };
 };
 
@@ -440,7 +452,7 @@ anychart.charts.Venn.prototype.labels = function(opt_value) {
     this.labels_.listenSignals(this.labelsInvalidated_, this);
     this.labels_.setParentEventTarget(this);
     this.registerDisposable(this.labels_);
-    this.invalidate(anychart.ConsistencyState.PYRAMID_FUNNEL_LABELS, anychart.Signal.NEEDS_REDRAW);
+    this.invalidate(anychart.ConsistencyState.VENN_LABELS, anychart.Signal.NEEDS_REDRAW);
   }
 
   if (goog.isDef(opt_value)) {
@@ -544,7 +556,7 @@ anychart.charts.Venn.prototype.createLegendItemsProvider = function(sourceMode, 
       'meta': {
         'pointIndex': index,
         'pointValue': iterator.get('value'),
-        series: this
+        'series': this
       },
       'iconType': anychart.enums.LegendItemIconType.SQUARE,
       'text': itemText,
@@ -661,6 +673,51 @@ anychart.charts.Venn.prototype.getResetIterator = function() {
  */
 anychart.charts.Venn.prototype.dataReflectionSort_ = function(val1, val2) {
   return val1.sets.length - val2.sets.length;
+};
+
+
+//endregion
+//region -- Intersections
+/**
+ * Intersections settings getter/setter.
+ * @param {Object=} opt_value - Settings object.
+ * @return {anychart.core.venn.Intersections|anychart.charts.Venn} - Current value or itself for chaining.
+ */
+anychart.charts.Venn.prototype.intersections = function(opt_value) {
+  if (!this.intersections_) {
+    this.intersections_ = new anychart.core.venn.Intersections(this);
+    this.intersections_.listenSignals(this.intersectionsInvalidated_, this);
+  }
+
+  if (goog.isDef(opt_value)) {
+    this.intersections_.setup(opt_value);
+    return this;
+  }
+  return this.intersections_;
+};
+
+
+/**
+ * Internal intersections invalidation handler.
+ * @param {anychart.SignalEvent} event - Event object.
+ * @private
+ */
+anychart.charts.Venn.prototype.intersectionsInvalidated_ = function(event) {
+  var state = 0;
+
+  if (event.hasSignal(anychart.Signal.NEEDS_REDRAW_LABELS))
+    state |= anychart.ConsistencyState.VENN_LABELS;
+
+  if (event.hasSignal(anychart.Signal.NEEDS_UPDATE_MARKERS))
+    state |= anychart.ConsistencyState.VENN_MARKERS;
+
+  if (event.hasSignal(anychart.Signal.NEEDS_REDRAW_APPEARANCE))
+    state |= anychart.ConsistencyState.VENN_APPEARANCE;
+
+  if (event.hasSignal(anychart.Signal.NEED_UPDATE_LEGEND))
+    state |= anychart.ConsistencyState.CHART_LEGEND;
+
+  this.invalidate(state, anychart.Signal.NEEDS_REDRAW);
 };
 
 
@@ -945,11 +1002,25 @@ anychart.charts.Venn.prototype.showTooltip = function(opt_event) {
     return;
   }
 
-  var tooltip = /** @type {anychart.core.ui.Tooltip} */(this.tooltip());
+  var iterator = this.getIterator();
+
+  // var tooltip = /** @type {anychart.core.ui.Tooltip} */(this.tooltip());
+  var tooltip = /** @type {anychart.core.ui.Tooltip} */(iterator.meta('tooltip'));
+  tooltip.hide(true);
   var formatProvider = this.createFormatProvider();
   if (opt_event) {
     tooltip.showFloat(opt_event['clientX'], opt_event['clientY'], formatProvider);
   }
+};
+
+
+/**
+ * @inheritDoc
+ */
+anychart.charts.Venn.prototype.updateTooltip = function(event) {
+  var iterator = this.getIterator();
+  var tooltip = /** @type {anychart.core.ui.Tooltip} */(iterator.meta('tooltip'));
+  tooltip.updatePosition(event['clientX'], event['clientY']);
 };
 
 
@@ -1001,22 +1072,27 @@ anychart.charts.Venn.prototype.updatePaletteFill_ = function() {
     var sets = refl.sets;
 
     var set;
+    var isIntersection = false;
+    var tooltip = this.tooltip();
     if (sets.length == 1) { //Main circle, not an intersection.
       var color = this.palette().itemAt(i);
       iterator.meta('paletteFill', color);
       set = sets[0];
       this.circlesMap_[set].paletteFill = color;
     } else {
-      var parentColors = [];
-      for (var j = 0; j < sets.length; j++) {
-        set = sets[j];
-        var parent = this.circlesMap_[set];
-        parentColors.push(parent.paletteFill);
-      }
-      var paletteFill = this.blendColors_(parentColors);
-      iterator.select(iteratorIndex);
-      iterator.meta('paletteFill', paletteFill);
+      // var parentColors = [];
+      // for (var j = 0; j < sets.length; j++) {
+      //   set = sets[j];
+      //   var parent = this.circlesMap_[set];
+      //   parentColors.push(parent.paletteFill);
+      // }
+      // var paletteFill = this.blendColors_(parentColors);
+      // iterator.meta('paletteFill', paletteFill);
+      isIntersection = true;
+      tooltip = this.intersections().tooltip();
     }
+    iterator.meta('isIntersection', isIntersection);
+    iterator.meta('tooltip', tooltip);
   }
 };
 
@@ -1027,19 +1103,14 @@ anychart.charts.Venn.prototype.drawContent = function(bounds) {
 
   var i, refl, iteratorIndex, iterator;
 
-  if (!this.baseLayer_) { //Dom init.
-    this.baseLayer_ = this.rootElement.layer();
-    this.registerDisposable(this.baseLayer_);
-
+  if (!this.shapeManager_) {
     this.shapeManager_ = new anychart.core.shapeManagers.PerPoint(this, [
       anychart.core.shapeManagers.pathFillConfig,
       anychart.core.shapeManagers.pathStrokeConfig,
       anychart.core.shapeManagers.pathHatchConfig
     ], true);
 
-    this.shapeManager_.setContainer(this.baseLayer_);
-
-    this.labels().container(this.baseLayer_);
+    this.shapeManager_.setContainer(this.rootElement);
   }
 
   if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
@@ -1076,12 +1147,13 @@ anychart.charts.Venn.prototype.drawContent = function(bounds) {
       this.drawArc_(fillPath, stats, bounds);
       this.drawArc_(hatchFillPath, stats, bounds);
       this.drawArc_(strokePath, stats, bounds);
-      this.invalidate(anychart.ConsistencyState.VENN_LABELS);
     }
+    this.invalidate(anychart.ConsistencyState.VENN_LABELS);
   }
 
   if (this.hasInvalidationState(anychart.ConsistencyState.VENN_LABELS)) {
     if (this.labels().enabled()) {
+      this.labels().container(this.rootElement);
       this.labels().clear();
 
       for (i = 0; i < this.dataReflections_.length; i++) {
@@ -1179,6 +1251,7 @@ anychart.charts.Venn.prototype.drawArc_ = function(path, stats, bounds) {
  */
 anychart.charts.Venn.prototype.drawLabel_ = function(state, iterator) {
   var label = iterator.meta('label');
+  var source = iterator.meta('isIntersection') ? this.intersections() : this;
 
   label.resetSettings();
 
@@ -1189,19 +1262,40 @@ anychart.charts.Venn.prototype.drawLabel_ = function(state, iterator) {
   var hoverLabel = iterator.get('hoverLabel') || null;
   var selectLabel = iterator.get('selectLabel') || null;
 
-  var priority = 0;
-  if (selected) {
-    label.state('selectLabel', pointLabel, 0);
-    label.state('selectThemeLabel', this.selectLabels(), 1);
-    priority = 2;
-  }
-  if (hovered) {
-    label.state('hoverLabel', hoverLabel, priority);
-    label.state('hoverThemeLabel', this.hoverLabels(), priority + 1);
-    priority += 2;
-  }
-  label.state('pointLabel', pointLabel, priority);
-  label.state('pointThemeLabel', this.labels(), priority + 1);
+  var pointState = selected ? selectLabel : hovered ? hoverLabel : null;
+  var chartState = selected ? source.selectLabels() : hovered ? source.hoverLabels() : null;
+
+  label.state('pointState', pointState);
+  // label.state('seriesState', seriesStateFactory);
+  label.state('seriesState', null);
+  label.state('chartState', chartState);
+  label.state('pointNormal', pointLabel || null);
+  // label.state('seriesNormal', factory);
+  label.state('seriesNormal', null);
+  label.state('chartNormal', source.labels());
+  // label.state('seriesStateTheme', seriesStateFactory ? seriesStateFactory.themeSettings : null);
+  label.state('seriesStateTheme', null);
+  label.state('chartStateTheme', chartState ? chartState.themeSettings : null);
+  label.state('auto', label.autoSettings);
+  // label.state('seriesNormalTheme', factory.themeSettings);
+  label.state('seriesNormalTheme', source.labels().themeSettings || null);
+  label.state('chartNormalTheme', this.labels().themeSettings || null);
+
+
+
+  // var priority = 0;
+  // if (selected) {
+  //   label.state('selectLabel', selectLabel, 0);
+  //   label.state('selectThemeLabel', this.selectLabels(), 1);
+  //   priority = 2;
+  // }
+  // if (hovered) {
+  //   label.state('hoverLabel', hoverLabel, priority);
+  //   label.state('hoverThemeLabel', this.hoverLabels(), priority + 1);
+  //   priority += 2;
+  // }
+  // label.state('pointLabel', pointLabel, priority);
+  // label.state('pointThemeLabel', this.labels(), priority + 1);
 
   label.draw();
 };
@@ -1236,6 +1330,7 @@ anychart.charts.Venn.prototype.serialize = function() {
   json['selectLabels'] = this.selectLabels().serialize();
   json['hoverLabels'] = this.hoverLabels().serialize();
   json['palette'] = this.palette().serialize();
+  json['intersections'] = this.intersections().serialize();
 
   return {'chart': json};
 };
@@ -1257,6 +1352,8 @@ anychart.charts.Venn.prototype.setupByJSON = function(config, opt_default) {
   this.hoverLabels(config['hoverLabels']);
   this.selectLabels(config['selectLabels']);
   this.palette(config['palette']);
+
+  this.intersections(config['intersections']);
 };
 
 
@@ -1267,5 +1364,6 @@ anychart.charts.Venn.prototype.setupByJSON = function(config, opt_default) {
   var proto = anychart.charts.Venn.prototype;
   proto['data'] = proto.data;
   proto['getType'] = proto.getType;
+  proto['intersections'] = proto.intersections;
 })();
 

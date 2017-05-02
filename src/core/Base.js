@@ -278,6 +278,7 @@ anychart.ConsistencyState = {
   VENN_DATA: 1 << 12,
   VENN_LABELS: 1 << 13,
   VENN_APPEARANCE: 1 << 14,
+  VENN_MARKERS: 1 << 15,
   //---------------------------------- ANNOTATIONS (VB) ----------------------------------
   ANNOTATIONS_ANCHORS: 1 << 6,
   ANNOTATIONS_LAST_POINT: 1 << 7,
@@ -366,7 +367,8 @@ anychart.Signal = {
   NEEDS_UPDATE_TOOLTIP: 1 << 14,
   ENABLED_STATE_CHANGED: 1 << 15,
   Z_INDEX_STATE_CHANGED: 1 << 16,
-  NEED_RECALCULATE_LEGEND: 1 << 17
+  NEED_RECALCULATE_LEGEND: 1 << 17,
+  NEEDS_UPDATE_MARKERS: 1 << 18
 };
 
 
