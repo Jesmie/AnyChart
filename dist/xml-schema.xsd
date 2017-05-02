@@ -2548,10 +2548,10 @@
 
     <xsd:complexType name="core.quadrant.Quarters_list">
         <xsd:all>
-            <xsd:element name="right_top" type="core.quadrant.Quarter"/>
-            <xsd:element name="left_top" type="core.quadrant.Quarter"/>
-            <xsd:element name="left_bottom" type="core.quadrant.Quarter"/>
-            <xsd:element name="right_bottom" type="core.quadrant.Quarter"/>
+            <xsd:element minOccurs="0" maxOccurs="1" name="right_top" type="core.quadrant.Quarter"/>
+            <xsd:element minOccurs="0" maxOccurs="1" name="left_top" type="core.quadrant.Quarter"/>
+            <xsd:element minOccurs="0" maxOccurs="1" name="left_bottom" type="core.quadrant.Quarter"/>
+            <xsd:element minOccurs="0" maxOccurs="1" name="right_bottom" type="core.quadrant.Quarter"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -3049,6 +3049,10 @@
             <xsd:enumeration value="trapezium"/>
             <xsd:enumeration value="pentagon"/>
             <xsd:enumeration value="arrowhead"/>
+            <xsd:enumeration value="arrowUp"/>
+            <xsd:enumeration value="arrowDown"/>
+            <xsd:enumeration value="arrowLeft"/>
+            <xsd:enumeration value="arrowRight"/>
         </xsd:restriction>
     </xsd:simpleType>
 
