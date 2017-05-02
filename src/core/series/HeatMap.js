@@ -177,20 +177,26 @@ anychart.core.series.HeatMap.prototype.additionalLabelsInitialize = function() {
   }
   if (normalAdjust) {
     labels.setAdjustFontSize(minFontSize);
+    labels.autoSettings['adjustFontSize'] = false;
   } else {
     labels.setAdjustFontSize(null);
+    delete labels.autoSettings['adjustFontSize'];
   }
 
   if (hoverAdjust) {
     hoverLabels.setAdjustFontSize(hoverMinFontSize);
+    hoverLabels.autoSettings['adjustFontSize'] = false;
   } else {
     hoverLabels.setAdjustFontSize(null);
+    delete hoverLabels.autoSettings['adjustFontSize'];
   }
 
   if (selectAdjust) {
     selectLabels.setAdjustFontSize(selectMinFontSize);
+    selectLabels.autoSettings['adjustFontSize'] = false;
   } else {
     selectLabels.setAdjustFontSize(null);
+    delete selectLabels.autoSettings['adjustFontSize'];
   }
 };
 
