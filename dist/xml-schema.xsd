@@ -2528,7 +2528,7 @@
             <xsd:element minOccurs="0" maxOccurs="1" name="title" type="core.Title" />
             <xsd:element minOccurs="0" maxOccurs="1" name="margin" type="utils.Space" />
             <xsd:element minOccurs="0" maxOccurs="1" name="padding" type="utils.Space" />
-            <xsd:element minOccurs="0" maxOccurs="1" name="labels" type="core.Label_list"/>
+            <xsd:element minOccurs="0" maxOccurs="1" name="quarter_labels" type="core.Label_list"/>
             <!-- core.Background -->
             <xsd:element minOccurs="0" maxOccurs="1" name="corners" type="utils.Corners"/>
         </xsd:all>

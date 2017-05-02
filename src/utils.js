@@ -1358,7 +1358,7 @@ anychart.utils.getNodeNames_ = function(arrayPropName) {
     case 'precision':
       return ['precision_list', 'precision'];
     case 'labels':
-      return ['labels', 'label'];
+      return ['quarter_labels', 'label'];
   }
   return null;
 };
@@ -1446,7 +1446,7 @@ anychart.utils.getArrayPropName_ = function(nodeName) {
       return ['dependsOn', 'item'];
     case 'precisionList':
       return ['precision', 'precision'];
-    case 'labels':
+    case 'quarterLabels':
       return ['labels', 'label'];
   }
   return null;
