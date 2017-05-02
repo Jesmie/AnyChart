@@ -5420,7 +5420,11 @@
         "bar",
         "trapezoid",
         "arrow",
-        "arrowhead"
+        "arrowhead",
+        "arrowUp",
+        "arrowDown",
+        "arrowLeft",
+        "arrowRight"
       ]
     },
     "anychart.enums.Layout": {
