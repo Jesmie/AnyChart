@@ -177,26 +177,20 @@ anychart.core.series.HeatMap.prototype.additionalLabelsInitialize = function() {
   }
   if (normalAdjust) {
     labels.setAdjustFontSize(minFontSize);
-    labels.autoSettings['adjustFontSize'] = false;
   } else {
     labels.setAdjustFontSize(null);
-    delete labels.autoSettings['adjustFontSize'];
   }
 
   if (hoverAdjust) {
     hoverLabels.setAdjustFontSize(hoverMinFontSize);
-    hoverLabels.autoSettings['adjustFontSize'] = false;
   } else {
     hoverLabels.setAdjustFontSize(null);
-    delete hoverLabels.autoSettings['adjustFontSize'];
   }
 
   if (selectAdjust) {
     selectLabels.setAdjustFontSize(selectMinFontSize);
-    selectLabels.autoSettings['adjustFontSize'] = false;
   } else {
     selectLabels.setAdjustFontSize(null);
-    delete selectLabels.autoSettings['adjustFontSize'];
   }
 };
 
@@ -363,9 +357,9 @@ anychart.core.series.HeatMap.prototype.drawLabel = function(point, pointState, p
       }
     }
     if (label) {
-      label['clip'](cellBounds);
-      label['width'](cellBounds.width);
-      label['height'](cellBounds.height);
+      label['clip'](displayMode == anychart.enums.LabelsDisplayMode.ALWAYS_SHOW ? this.pixelBoundsCache : cellBounds);
+      // label['width'](cellBounds.width);
+      // label['height'](cellBounds.height);
       if (pointStateChanged)
         label.draw();
     }
