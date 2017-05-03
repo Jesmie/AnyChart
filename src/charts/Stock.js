@@ -28,9 +28,6 @@ goog.require('anychart.utils');
  * @param {boolean=} opt_allowPointSettings Allows to set point settings from data.
  */
 anychart.charts.Stock = function(opt_allowPointSettings) {
-  // See SeparateChart
-  this.supportsBaseHighlight = false;
-
   anychart.charts.Stock.base(this, 'constructor');
 
   /**
@@ -144,6 +141,12 @@ anychart.charts.Stock.prototype.SUPPORTED_CONSISTENCY_STATES =
     anychart.ConsistencyState.STOCK_SCROLLER |
     anychart.ConsistencyState.STOCK_DATA |
     anychart.ConsistencyState.STOCK_SCALES;
+
+
+/** @inheritDoc */
+anychart.charts.Stock.prototype.supportsBaseHighlight = function() {
+  return false;
+};
 
 
 //region Chart type and series types
@@ -832,16 +835,6 @@ anychart.charts.Stock.prototype.resizeHandler = function(e) {
     this.invalidate(anychart.ConsistencyState.BOUNDS,
         anychart.Signal.NEEDS_REDRAW | anychart.Signal.BOUNDS_CHANGED);
   }
-};
-
-
-/** @inheritDoc */
-anychart.charts.Stock.prototype.createTooltip = function() {
-  var tooltip = new anychart.core.ui.Tooltip(anychart.core.ui.Tooltip.Capabilities.ANY);
-  this.registerDisposable(tooltip);
-  tooltip.chart(this);
-
-  return tooltip;
 };
 
 

@@ -247,8 +247,7 @@ anychart.charts.Map = function() {
   this.unboundRegions(true);
   this.defaultSeriesType(anychart.enums.MapSeriesType.CHOROPLETH);
 
-  if (this.supportsBaseHighlight)
-    this.eventsHandler.listen(this, [goog.events.EventType.POINTERDOWN, acgraph.events.EventType.TOUCHSTART], this.tapHandler);
+  this.eventsHandler.listen(this, [goog.events.EventType.POINTERDOWN, acgraph.events.EventType.TOUCHSTART], this.tapHandler);
 };
 goog.inherits(anychart.charts.Map, anychart.core.ChartWithSeries);
 

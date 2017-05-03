@@ -195,26 +195,37 @@ anychart.core.Chart.prototype.SUPPORTED_CONSISTENCY_STATES =
 
 
 /**
- * A temporary crutch to suppress base interactivity support in Stock.
- * @protected
- * @type {boolean}
- */
-anychart.core.Chart.prototype.supportsBaseHighlight = true;
-
-
-/**
- * 3D mode flag.
- * @type {boolean}
- */
-anychart.core.Chart.prototype.isMode3d = false;
-
-
-/**
  * Chart content bounds.
  * @type {anychart.math.Rect}
  * @protected
  */
 anychart.core.Chart.prototype.contentBounds;
+
+
+//region --- Testers
+//------------------------------------------------------------------------------
+//
+//  Testers
+//
+//------------------------------------------------------------------------------
+/**
+ * A temporary crutch to suppress base interactivity support in Stock.
+ * @return {boolean}
+ * @protected
+ */
+anychart.core.Chart.prototype.supportsBaseHighlight = function() {
+  return true;
+};
+
+
+/**
+ * 3D mode flag.
+ * @return {boolean}
+ * @protected
+ */
+anychart.core.Chart.prototype.isMode3d = function() {
+  return false;
+};
 
 
 /**
@@ -235,6 +246,59 @@ anychart.core.Chart.prototype.supportsTooltip = function() {
 };
 
 
+/**
+ * @ignoreDoc
+ * @param {(Object|boolean|null)=} opt_value Legend settings.
+ * @return {anychart.core.Chart|anychart.core.ui.Legend} Chart legend instance of itself for chaining call.
+ */
+anychart.core.Chart.prototype.legend = function(opt_value) {
+  anychart.core.reporting.error(anychart.enums.ErrorCode.NO_LEGEND_IN_CHART);
+  return goog.isDef(opt_value) ? this : null;
+};
+
+
+/**
+ * Internal public method. Returns all chart series.
+ * @return {!Array.<anychart.core.series.Base|anychart.core.SeriesBase|anychart.core.linearGauge.pointers.Base>}
+ */
+anychart.core.Chart.prototype.getAllSeries = goog.abstractMethod;
+
+
+/**
+ * Getter series by index.
+ * @param {number} index .
+ * @return {anychart.core.series.Base|anychart.core.SeriesBase}
+ */
+anychart.core.Chart.prototype.getSeries = function(index) {
+  return null;
+};
+
+
+/**
+ * Tester if it is series.
+ * @return {boolean}
+ */
+anychart.core.Chart.prototype.isSeries = function() {
+  return false;
+};
+
+
+/**
+ * Tester if it is chart.
+ * @return {boolean}
+ */
+anychart.core.Chart.prototype.isChart = function() {
+  return true;
+};
+
+
+//endregion
+//region --- Infrastructure
+//------------------------------------------------------------------------------
+//
+//  Infrastructure
+//
+//------------------------------------------------------------------------------
 /**
  * Gets root layer.
  * @return {acgraph.vector.Layer}
@@ -258,33 +322,26 @@ anychart.core.Chart.prototype.createStage = function() {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
-//
-//  Methods to set defaults for multiple entities.
-//
-//----------------------------------------------------------------------------------------------------------------------
 /**
- * Getter/setter for axis default settings.
- * @param {Object=} opt_value Object with x-axis settings.
- * @return {Object}
+ * Returns chart or gauge type. Published in charts.
+ * @return {anychart.enums.ChartTypes|anychart.enums.GaugeTypes|anychart.enums.MapTypes}
  */
-anychart.core.Chart.prototype.defaultLabelSettings = function(opt_value) {
-  if (goog.isDef(opt_value)) {
-    if (!this.defaultLabelSettings_)
-      this.defaultLabelSettings_ = goog.object.clone(opt_value);
-    else
-      goog.object.extend(this.defaultLabelSettings_, opt_value);
-    return this;
-  }
-  return this.defaultLabelSettings_ || {};
-};
+anychart.core.Chart.prototype.getType = goog.abstractMethod;
 
 
-//----------------------------------------------------------------------------------------------------------------------
+/**
+ * @typedef {{chart: anychart.core.Chart}}
+ */
+anychart.core.Chart.DrawEvent;
+
+
+//endregion
+//region --- Margin
+//------------------------------------------------------------------------------
 //
-//  Margin.
+//  Margin
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Getter/setter for margin.
  * @param {(string|number|Array.<number|string>|{top:(number|string),left:(number|string),bottom:(number|string),right:(number|string)})=} opt_spaceOrTopOrTopAndBottom .
@@ -323,11 +380,13 @@ anychart.core.Chart.prototype.marginInvalidated_ = function(event) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Padding
+//------------------------------------------------------------------------------
 //
-//  Padding.
+//  Padding
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Getter/setter for padding.
  * @param {(string|number|Array.<number|string>|{top:(number|string),left:(number|string),bottom:(number|string),right:(number|string)})=} opt_spaceOrTopOrTopAndBottom .
@@ -366,11 +425,13 @@ anychart.core.Chart.prototype.paddingInvalidated_ = function(event) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Background
+//------------------------------------------------------------------------------
 //
-//  Background.
+//  Background
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Getter/setter for background.
  * @param {(string|Object|null|boolean)=} opt_value .
@@ -405,11 +466,13 @@ anychart.core.Chart.prototype.backgroundInvalidated_ = function(event) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Title
+//------------------------------------------------------------------------------
 //
-//  Title.
+//  Title
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Getter/setter for title.
  * @param {(null|boolean|Object|string)=} opt_value .
@@ -453,11 +516,13 @@ anychart.core.Chart.prototype.onTitleSignal_ = function(event) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Chart labels
+//------------------------------------------------------------------------------
 //
-//  Labels.
+//  Chart labels
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Getter/setter for label.
  * @param {(null|boolean|Object|string|number)=} opt_indexOrValue Chart label instance to add.
@@ -504,6 +569,20 @@ anychart.core.Chart.prototype.onLabelSignal_ = function(event) {
 
 
 /**
+ * Getter/setter for axis default settings.
+ * @param {Object=} opt_value Object with x-axis settings.
+ * @return {Object}
+ */
+anychart.core.Chart.prototype.defaultLabelSettings = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    this.defaultLabelSettings_ = opt_value;
+    return this;
+  }
+  return this.defaultLabelSettings_ || {};
+};
+
+
+/**
  * Creates chart label.
  * @return {anychart.core.ui.Label} Label instance.
  * @protected
@@ -513,11 +592,24 @@ anychart.core.Chart.prototype.createChartLabel = function() {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+/**
+ * Sets chart label settings.
+ * @param {anychart.core.ui.Label} label Label for tuning.
+ * @param {anychart.math.Rect} bounds Label parent bounds.
+ * @protected
+ */
+anychart.core.Chart.prototype.setLabelSettings = function(label, bounds) {
+  label.parentBounds(bounds);
+};
+
+
+//endregion
+//region --- Calculations and statistics
+//------------------------------------------------------------------------------
 //
-//  Statistics.
+//  Calculations and statistics
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Developers note:
  * This method:
@@ -579,11 +671,13 @@ anychart.core.Chart.prototype.getStat = function(key) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Tooltip
+//------------------------------------------------------------------------------
 //
-//  Tooltip.
+//  Tooltip
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Creates chart tooltip.
  * @param {(Object|boolean|null)=} opt_value
@@ -613,7 +707,8 @@ anychart.core.Chart.prototype.createTooltip = function() {
   this.registerDisposable(tooltip);
   tooltip.chart(this);
 
-  this.listen(anychart.enums.EventType.POINTS_HOVER, this.showTooltip_, true);
+  if (this.supportsBaseHighlight())
+    this.listen(anychart.enums.EventType.POINTS_HOVER, this.showTooltip_, true);
   return tooltip;
 };
 
@@ -727,15 +822,6 @@ anychart.core.Chart.prototype.showTooltip_ = function(event) {
 
 
 /**
- * Used in sparklines.
- * @return {boolean}
- */
-anychart.core.Chart.prototype.useUnionTooltipAsSingle = function() {
-  return false;
-};
-
-
-/**
  * Update tooltip position. (for float)
  * @param {anychart.core.MouseEvent} event
  * @protected
@@ -745,11 +831,22 @@ anychart.core.Chart.prototype.updateTooltip = function(event) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+/**
+ * Used in sparklines.
+ * @return {boolean}
+ */
+anychart.core.Chart.prototype.useUnionTooltipAsSingle = function() {
+  return false;
+};
+
+
+//endregion
+//region --- Context menu
+//------------------------------------------------------------------------------
 //
-//  ContextMenu.
+//  Context menu
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Creates context menu for chart.
  * @param {(Object|boolean|null)=} opt_value
@@ -1024,11 +1121,155 @@ anychart.core.Chart.contextMenuMap = {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Credits
+//------------------------------------------------------------------------------
 //
-//  Drawing.
+//  Credits
 //
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+/**
+ * Getter/setter for credits.
+ * @param {(Object|boolean|null)=} opt_value
+ * @return {!(anychart.core.Chart|anychart.core.ui.ChartCredits)} Chart credits or itself for chaining call.
+ */
+anychart.core.Chart.prototype.credits = function(opt_value) {
+  if (!this.credits_) {
+    this.credits_ = new anychart.core.ui.ChartCredits(this);
+    this.registerDisposable(this.credits_);
+    this.credits_.listenSignals(this.onCreditsSignal_, this);
+  }
+
+  if (goog.isDef(opt_value)) {
+    this.credits_.setup(opt_value);
+    return this;
+  } else {
+    return this.credits_;
+  }
+};
+
+
+/**
+ * Internal title invalidation handler.
+ * @param {anychart.SignalEvent} event Event object.
+ * @private
+ */
+anychart.core.Chart.prototype.onCreditsSignal_ = function(event) {
+  var state = 0;
+  var signal = anychart.Signal.NEEDS_REDRAW;
+  if (event.hasSignal(anychart.Signal.NEEDS_REAPPLICATION)) {
+    state |= anychart.ConsistencyState.CHART_CREDITS;
+  }
+  // If there are no signals - !state and nothing will happen.
+  this.invalidate(state, signal);
+};
+
+
+//endregion
+//region --- Animation
+//------------------------------------------------------------------------------
+//
+//  Animation
+//
+//------------------------------------------------------------------------------
+/**
+ * Setter/getter for animation setting.
+ * @param {(boolean|Object)=} opt_enabledOrJson Whether to enable animation.
+ * @param {number=} opt_duration A Duration in milliseconds.
+ * @return {anychart.core.utils.Animation|anychart.core.Chart} Animations settings object or self for chaining.
+ */
+anychart.core.Chart.prototype.animation = function(opt_enabledOrJson, opt_duration) {
+  if (!this.animation_) {
+    this.animation_ = new anychart.core.utils.Animation();
+    this.animation_.listenSignals(this.onAnimationSignal_, this);
+  }
+  if (goog.isDef(opt_enabledOrJson)) {
+    this.animation_.setup.apply(this.animation_, arguments);
+    return this;
+  } else {
+    return this.animation_;
+  }
+};
+
+
+/**
+ * Animation enabled change handler.
+ * @private
+ */
+anychart.core.Chart.prototype.onAnimationSignal_ = function() {
+  this.invalidate(anychart.ConsistencyState.CHART_ANIMATION, anychart.Signal.NEEDS_REDRAW);
+};
+
+
+/**
+ * Animate chart.
+ */
+anychart.core.Chart.prototype.doAnimation = goog.nullFunction;
+
+
+//endregion
+//region --- A11y
+//------------------------------------------------------------------------------
+//
+//  A11y
+//
+//------------------------------------------------------------------------------
+/**
+ * Creates tooltip context provider.
+ * @return {anychart.format.Context}
+ */
+anychart.core.Chart.prototype.createA11yContextProvider = function() {
+  if (!this.chartContextProvider_) {
+    this.chartContextProvider_ = new anychart.format.Context();
+  }
+
+  var values = {
+    'chart': {value: this, type: anychart.enums.TokenType.UNKNOWN}
+  };
+
+  this.chartContextProvider_
+      .statisticsSources([this]);
+
+  return /** @type {anychart.format.Context} */ (this.chartContextProvider_.propagate(values));
+};
+
+
+/**
+ * Setter/getter for accessibility setting.
+ * @param {(boolean|Object)=} opt_enabledOrJson - Whether to enable accessibility.
+ * @return {anychart.core.utils.ChartA11y|anychart.core.Chart} - Accessibility settings object or self for chaining.
+ */
+anychart.core.Chart.prototype.a11y = function(opt_enabledOrJson) {
+  if (!this.a11y_) {
+    this.a11y_ = new anychart.core.utils.ChartA11y(this);
+    this.registerDisposable(this.a11y_);
+    this.a11y_.listenSignals(this.onA11ySignal_, this);
+  }
+  if (goog.isDef(opt_enabledOrJson)) {
+    this.a11y_.setup.apply(this.a11y_, arguments);
+    return this;
+  } else {
+    return this.a11y_;
+  }
+};
+
+
+/**
+ * A11y change handler.
+ * @private
+ */
+anychart.core.Chart.prototype.onA11ySignal_ = function() {
+  this.invalidate(anychart.ConsistencyState.A11Y, anychart.Signal.NEEDS_REDRAW);
+};
+
+
+//endregion
+//region --- Bounds and drawing
+//------------------------------------------------------------------------------
+//
+//  Bounds and drawing
+//
+//------------------------------------------------------------------------------
 /**
  * Calculate chart content bounds.
  * @param {!anychart.math.Rect} totalBounds Total chart area bounds, do not override, it can be useful later.
@@ -1079,59 +1320,6 @@ anychart.core.Chart.prototype.calculateContentAreaSpace = function(totalBounds) 
 
 
 /**
- * Sets chart label settings.
- * @param {anychart.core.ui.Label} label Label for tuning.
- * @param {anychart.math.Rect} bounds Label parent bounds.
- * @protected
- */
-anychart.core.Chart.prototype.setLabelSettings = function(label, bounds) {
-  label.parentBounds(bounds);
-};
-
-
-//----------------------------------------------------------------------------------------------------------------------
-//
-//  Credits.
-//
-//----------------------------------------------------------------------------------------------------------------------
-/**
- * Getter/setter for credits.
- * @param {(Object|boolean|null)=} opt_value
- * @return {!(anychart.core.Chart|anychart.core.ui.ChartCredits)} Chart credits or itself for chaining call.
- */
-anychart.core.Chart.prototype.credits = function(opt_value) {
-  if (!this.credits_) {
-    this.credits_ = new anychart.core.ui.ChartCredits(this);
-    this.registerDisposable(this.credits_);
-    this.credits_.listenSignals(this.onCreditsSignal_, this);
-  }
-
-  if (goog.isDef(opt_value)) {
-    this.credits_.setup(opt_value);
-    return this;
-  } else {
-    return this.credits_;
-  }
-};
-
-
-/**
- * Internal title invalidation handler.
- * @param {anychart.SignalEvent} event Event object.
- * @private
- */
-anychart.core.Chart.prototype.onCreditsSignal_ = function(event) {
-  var state = 0;
-  var signal = anychart.Signal.NEEDS_REDRAW;
-  if (event.hasSignal(anychart.Signal.NEEDS_REAPPLICATION)) {
-    state |= anychart.ConsistencyState.CHART_CREDITS;
-  }
-  // If there are no signals - !state and nothing will happen.
-  this.invalidate(state, signal);
-};
-
-
-/**
  * Draw credits.
  * @param {anychart.math.Rect} parentBounds Parent bounds.
  * @return {!anychart.math.Rect} Bounds without credits bounds.
@@ -1149,100 +1337,6 @@ anychart.core.Chart.prototype.drawCredits = function(parentBounds) {
 
   this.markConsistent(anychart.ConsistencyState.CHART_CREDITS);
   return /** @type {!anychart.math.Rect} */(parentBounds);
-};
-
-
-//----------------------------------------------------------------------------------------------------------------------
-//
-//  Animations.
-//
-//----------------------------------------------------------------------------------------------------------------------
-/**
- * Setter/getter for animation setting.
- * @param {(boolean|Object)=} opt_enabledOrJson Whether to enable animation.
- * @param {number=} opt_duration A Duration in milliseconds.
- * @return {anychart.core.utils.Animation|anychart.core.Chart} Animations settings object or self for chaining.
- */
-anychart.core.Chart.prototype.animation = function(opt_enabledOrJson, opt_duration) {
-  if (!this.animation_) {
-    this.animation_ = new anychart.core.utils.Animation();
-    this.animation_.listenSignals(this.onAnimationSignal_, this);
-  }
-  if (goog.isDef(opt_enabledOrJson)) {
-    this.animation_.setup.apply(this.animation_, arguments);
-    return this;
-  } else {
-    return this.animation_;
-  }
-};
-
-
-/**
- * Animation enabled change handler.
- * @private
- */
-anychart.core.Chart.prototype.onAnimationSignal_ = function() {
-  this.invalidate(anychart.ConsistencyState.CHART_ANIMATION, anychart.Signal.NEEDS_REDRAW);
-};
-
-
-/**
- * Animate chart.
- */
-anychart.core.Chart.prototype.doAnimation = goog.nullFunction;
-
-
-//----------------------------------------------------------------------------------------------------------------------
-//
-//  Accessibility.
-//
-//----------------------------------------------------------------------------------------------------------------------
-/**
- * Creates tooltip context provider.
- * @return {anychart.format.Context}
- */
-anychart.core.Chart.prototype.createChartContextProvider = function() {
-  if (!this.chartContextProvider_) {
-    this.chartContextProvider_ = new anychart.format.Context();
-  }
-
-  var values = {
-    'chart': {value: this, type: anychart.enums.TokenType.UNKNOWN}
-  };
-
-  this.chartContextProvider_
-      .statisticsSources([this]);
-
-  return /** @type {anychart.format.Context} */ (this.chartContextProvider_.propagate(values));
-};
-
-
-/**
- * Setter/getter for accessibility setting.
- * @param {(boolean|Object)=} opt_enabledOrJson - Whether to enable accessibility.
- * @return {anychart.core.utils.ChartA11y|anychart.core.Chart} - Accessibility settings object or self for chaining.
- */
-anychart.core.Chart.prototype.a11y = function(opt_enabledOrJson) {
-  if (!this.a11y_) {
-    this.a11y_ = new anychart.core.utils.ChartA11y(this);
-    this.registerDisposable(this.a11y_);
-    this.a11y_.listenSignals(this.onA11ySignal_, this);
-  }
-  if (goog.isDef(opt_enabledOrJson)) {
-    this.a11y_.setup.apply(this.a11y_, arguments);
-    return this;
-  } else {
-    return this.a11y_;
-  }
-};
-
-
-/**
- * A11y change handler.
- * @private
- */
-anychart.core.Chart.prototype.onA11ySignal_ = function() {
-  this.invalidate(anychart.ConsistencyState.A11Y, anychart.Signal.NEEDS_REDRAW);
 };
 
 
@@ -1388,7 +1482,7 @@ anychart.core.Chart.prototype.drawInternal = function() {
     anychart.core.reporting.info(msg);
   }
 
-  if (this.supportsBaseHighlight)
+  if (this.supportsBaseHighlight())
     this.onInteractivitySignal();
 
   anychart.performance.end('Chart.draw()');
@@ -1432,11 +1526,6 @@ anychart.core.Chart.prototype.drawContent = function(bounds) {};
 anychart.core.Chart.prototype.specialDraw = function(bounds) {};
 
 
-//----------------------------------------------------------------------------------------------------------------------
-//
-//  Resize.
-//
-//----------------------------------------------------------------------------------------------------------------------
 /**
  * Define auto resize settings.
  * @param {boolean=} opt_value
@@ -1469,11 +1558,6 @@ anychart.core.Chart.prototype.resizeHandler = function(evt) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
-//
-//  Bounds/coordinates.
-//
-//----------------------------------------------------------------------------------------------------------------------
 /**
  * Getter for plot bounds of the chart.
  * @return {anychart.math.Rect}
@@ -1490,7 +1574,10 @@ anychart.core.Chart.prototype.getPlotBounds = function() {
  * @return {Object.<string, number>} .
  */
 anychart.core.Chart.prototype.localToGlobal = function(xCoord, yCoord) {
-  var result = {'x': xCoord, 'y': yCoord};
+  var result = {
+    'x': xCoord,
+    'y': yCoord
+  };
   if (this.container() && this.container().getStage()) {
     var containerPosition = this.container().getStage().getClientPosition();
     result['x'] += containerPosition.x;
@@ -1507,7 +1594,10 @@ anychart.core.Chart.prototype.localToGlobal = function(xCoord, yCoord) {
  * @return {Object.<string, number>} .
  */
 anychart.core.Chart.prototype.globalToLocal = function(xCoord, yCoord) {
-  var result = {'x': xCoord, 'y': yCoord};
+  var result = {
+    'x': xCoord,
+    'y': yCoord
+  };
   if (this.container() && this.container().getStage()) {
     var containerPosition = this.container().getStage().getClientPosition();
     result['x'] -= containerPosition.x;
@@ -1517,11 +1607,6 @@ anychart.core.Chart.prototype.globalToLocal = function(xCoord, yCoord) {
 };
 
 
-//----------------------------------------------------------------------------------------------------------------------
-//
-//  Remove/Restore.
-//
-//----------------------------------------------------------------------------------------------------------------------
 /** @inheritDoc */
 anychart.core.Chart.prototype.remove = function() {
   if (this.rootElement) this.rootElement.parent(null);
@@ -1537,12 +1622,15 @@ anychart.core.Chart.prototype.remove = function() {
 anychart.core.Chart.prototype.invalidateHandler_ = function(event) {
   anychart.globalLock.onUnlock(this.draw, this);
 };
-//end mess
 
 
-//----------------------------------------------------------------------------------------------------------------------
-//  JSON/XML.
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Ser/Deser/Json/XML/Dispose
+//------------------------------------------------------------------------------
+//
+//  Ser/Deser/Json/XML/Dispose
+//
+//------------------------------------------------------------------------------
 /**
  * Return chart configuration as JSON object or string.
  * Note for documentation writers!: Google compiler thinks that "Object" has "toJSON" method that must accept string and return *.
@@ -1704,57 +1792,13 @@ anychart.core.Chart.prototype.disposeInternal = function() {
 };
 
 
-/**
- * @ignoreDoc
- * @param {(Object|boolean|null)=} opt_value Legend settings.
- * @return {anychart.core.Chart|anychart.core.ui.Legend} Chart legend instance of itself for chaining call.
- */
-anychart.core.Chart.prototype.legend = function(opt_value) {
-  anychart.core.reporting.error(anychart.enums.ErrorCode.NO_LEGEND_IN_CHART);
-  return goog.isDef(opt_value) ? this : null;
-};
-
-
-//----------------------------------------------------------------------------------------------------------------------
+//endregion
+//region --- Interactivity
+//------------------------------------------------------------------------------
 //
-//  Events.
+//  Interactivity
 //
-//----------------------------------------------------------------------------------------------------------------------
-/**
- * Internal public method. Returns all chart series.
- * @return {!Array.<anychart.core.series.Base|anychart.core.SeriesBase|anychart.core.linearGauge.pointers.Base>}
- */
-anychart.core.Chart.prototype.getAllSeries = goog.abstractMethod;
-
-
-/**
- * Getter series by index.
- * @param {number} index .
- * @return {anychart.core.series.Base|anychart.core.SeriesBase}
- */
-anychart.core.Chart.prototype.getSeries = function(index) {
-  return null;
-};
-
-
-/**
- * Tester if it is series.
- * @return {boolean}
- */
-anychart.core.Chart.prototype.isSeries = function() {
-  return false;
-};
-
-
-/**
- * Tester if it is chart.
- * @return {boolean}
- */
-anychart.core.Chart.prototype.isChart = function() {
-  return true;
-};
-
-
+//------------------------------------------------------------------------------
 /** @inheritDoc */
 anychart.core.Chart.prototype.handleMouseEvent = function(event) {
   var series;
@@ -2525,19 +2569,13 @@ anychart.core.Chart.prototype.onInteractivitySignal = function() {
 };
 
 
-/**
- * Returns chart or gauge type. Published in charts.
- * @return {anychart.enums.ChartTypes|anychart.enums.GaugeTypes|anychart.enums.MapTypes}
- */
-anychart.core.Chart.prototype.getType = goog.abstractMethod;
-
-
-/**
- * @typedef {{chart: anychart.core.Chart}}
- */
-anychart.core.Chart.DrawEvent;
-
-
+//endregion
+//region --- Exporting/Sharing/Data serialization
+//------------------------------------------------------------------------------
+//
+//  Exporting/Sharing/Data serialization
+//
+//------------------------------------------------------------------------------
 /**
  * Extract headers from chart data set or stock storage.
  * @param {anychart.data.Set|anychart.data.TableStorage} dataSet
@@ -3272,6 +3310,8 @@ anychart.core.Chart.prototype.shareWithPinterest = function(opt_linkOrOptions, o
   this.shareAsPng(onSuccess, undefined, false, exportOptions['width'], exportOptions['height']);
 };
 
+
+//endregion
 //exports
 (function() {
   var proto = anychart.core.Chart.prototype;
