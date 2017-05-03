@@ -634,7 +634,7 @@ anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
       startY = tag.y,
       maxDelta = Math.sqrt(this.w * this.w + this.h * this.h),
 
-      s = (this.getOption('mode') == anychart.enums.TagCloudMode.SPIRAL ? this.archimedeanSpiral : this.rectangularSpiral)(),
+      s = this.getOption('mode') == anychart.enums.TagCloudMode.SPIRAL ? this.archimedeanSpiral() : this.rectangularSpiral(),
       // s = this.rectangularSpiral([this.w, this.h]),
 
       // dt = Math.random() < .5 ? 1 : -1,
