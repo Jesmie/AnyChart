@@ -2147,20 +2147,19 @@ anychart.core.series.Base.prototype.resolveAutoAnchor = function(position) {
  * @param {anychart.core.ui.LabelsFactory.Label} label
  */
 anychart.core.series.Base.prototype.checkBoundsCollision = function(factory, label) {
-  // reserved for 7.14.0
-  // var bounds = factory.measure(label);
-  // var anchor = /** @type {anychart.enums.Anchor} */(label.autoAnchor());
-  // if (this.getOption('isVertical')) {
-  //   if (anychart.utils.isRightAnchor(anchor) && bounds.left < this.pixelBoundsCache.left ||
-  //       anychart.utils.isLeftAnchor(anchor) && (bounds.left + bounds.width > this.pixelBoundsCache.left + this.pixelBoundsCache.width)) {
-  //     label.autoAnchor(anychart.utils.flipAnchorHorizontal(anchor));
-  //   }
-  // } else {
-  //   if (anychart.utils.isBottomAnchor(anchor) && bounds.top < this.pixelBoundsCache.top ||
-  //       anychart.utils.isTopAnchor(anchor) && (bounds.top + bounds.height > this.pixelBoundsCache.top + this.pixelBoundsCache.height)) {
-  //     label.autoAnchor(anychart.utils.flipAnchorVertical(anchor));
-  //   }
-  // }
+  var bounds = factory.measure(label);
+  var anchor = /** @type {anychart.enums.Anchor} */(label.autoAnchor());
+  if (this.getOption('isVertical')) {
+    if (anychart.utils.isRightAnchor(anchor) && bounds.left < this.pixelBoundsCache.left ||
+        anychart.utils.isLeftAnchor(anchor) && (bounds.left + bounds.width > this.pixelBoundsCache.left + this.pixelBoundsCache.width)) {
+      label.autoAnchor(anychart.utils.flipAnchorHorizontal(anchor));
+    }
+  } else {
+    if (anychart.utils.isBottomAnchor(anchor) && bounds.top < this.pixelBoundsCache.top ||
+        anychart.utils.isTopAnchor(anchor) && (bounds.top + bounds.height > this.pixelBoundsCache.top + this.pixelBoundsCache.height)) {
+      label.autoAnchor(anychart.utils.flipAnchorVertical(anchor));
+    }
+  }
 };
 
 
