@@ -16,7 +16,6 @@ goog.require('anychart.modules.base');
  */
 anychart.donut = function(opt_data, opt_csvSettings) {
     var chart = new anychart.charts.Donut(opt_data, opt_csvSettings);
-    chart.setupByVal(anychart.getFullTheme('pie'), true);
-
+    chart.setupByVal(anychart.getFullTheme('donut'), true);
     return chart;
 };

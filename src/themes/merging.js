@@ -874,6 +874,10 @@ anychart.themes.merging.mergingMap_ = [
   },
   {
     defaultObj: 'pie',
+    targets: ['donut']
+  },
+  {
+    defaultObj: 'pie',
     targets: ['pie3d']
   },
   {

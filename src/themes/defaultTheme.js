@@ -2207,6 +2207,9 @@ goog.provide('anychart.themes.defaultTheme');
         'titleFormat': pieA11yTitleFormatter
       }
     },
+    'donut': {
+      'innerRadius': '40%'
+    },
     'funnel': {
       'title': {
         'text': 'Funnel Chart'
