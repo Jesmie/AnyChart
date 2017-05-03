@@ -153,28 +153,17 @@ def sync_required(func):
 #                            Compiler flags generation.
 # =======================================================================================================================
 class OptimizationLevel:
-    NONE = 0
-    SIMPLE = 1
-    ADVANCED = 2
-
-
-def __add_option(flags, flag_name, flag_value):
-    flags.append('--' + flag_name + ' ' + flag_value)
+    NONE = 'WHITESPACE_ONLY'
+    SIMPLE = 'SIMPLE_OPTIMIZATIONS'
+    ADVANCED = 'ADVANCED_OPTIMIZATIONS'
 
 
 def __set_pretty_print(flags):
-    __add_option(flags, 'formatting', 'PRETTY_PRINT')
+    flogs.append('--formatting PRETTY_PRINT')
 
 
 def __set_optimization_level(flags, level):
-    # set compiler level
-    if level == OptimizationLevel.NONE:
-        __add_option(flags, 'compilation_level', 'WHITESPACE_ONLY')
-    elif level == OptimizationLevel.SIMPLE:
-        __add_option(flags, 'compilation_level', 'SIMPLE_OPTIMIZATIONS')
-    elif level == OptimizationLevel.ADVANCED:
-        __add_option(flags, 'compilation_level', 'ADVANCED_OPTIMIZATIONS')
-
+    flags.append('--compilation_level ' + level)
 
 def __get_output_file_arg(output_file):
     return ['--js_output_file ' + output_file]

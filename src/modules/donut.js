@@ -19,3 +19,6 @@ anychart.donut = function(opt_data, opt_csvSettings) {
     chart.setupByVal(anychart.getFullTheme('donut'), true);
     return chart;
 };
+
+//exports
+goog.exportSymbol('anychart.donut', anychart.donut);
