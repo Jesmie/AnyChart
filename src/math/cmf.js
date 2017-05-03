@@ -56,13 +56,13 @@ anychart.math.cmf.startFunction = function(context) {
 /**
  * Calculates CMF value.
  * @param {Object} context
+ * @param {number} close
  * @param {number} high
  * @param {number} low
- * @param {number} close
  * @param {number} volume
  * @return {number}
  */
-anychart.math.cmf.calculate = function(context, high, low, close, volume) {
+anychart.math.cmf.calculate = function(context, close, high, low, volume) {
   if (isNaN(high) || isNaN(low) || isNaN(close) || isNaN(volume)) {
     return NaN;
   }
@@ -98,11 +98,11 @@ anychart.math.cmf.calculate = function(context, high, low, close, volume) {
  * @this {anychart.math.cmf.Context}
  */
 anychart.math.cmf.calculationFunction = function(row, context) {
+  var close = anychart.utils.toNumber(row.get('close'));
   var high = anychart.utils.toNumber(row.get('high'));
   var low = anychart.utils.toNumber(row.get('low'));
-  var close = anychart.utils.toNumber(row.get('close'));
   var volume = anychart.utils.toNumber(row.get('volume'));
-  var rv = anychart.math.cmf.calculate(context, high, low, close, volume);
+  var rv = anychart.math.cmf.calculate(context, close, high, low, volume);
   row.set('result', rv);
 };
 

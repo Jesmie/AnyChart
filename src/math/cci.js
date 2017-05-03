@@ -55,12 +55,12 @@ anychart.math.cci.calculateMeanDeviation = function(context) {
 /**
  * Calculates CCI value.
  * @param {anychart.math.cci.Context} context
+ * @param {number} close
  * @param {number} high
  * @param {number} low
- * @param {number} close
  * @return {number}
  */
-anychart.math.cci.calculate = function(context, high, low, close) {
+anychart.math.cci.calculate = function(context, close, high, low) {
   if (isNaN(high) || isNaN(low) || isNaN(close)) {
     return NaN;
   }
@@ -77,10 +77,10 @@ anychart.math.cci.calculate = function(context, high, low, close) {
  * @this {anychart.math.cci.Context}
  */
 anychart.math.cci.calculationFunction = function(row, context) {
+  var close = anychart.utils.toNumber(row.get('close'));
   var high = anychart.utils.toNumber(row.get('high'));
   var low = anychart.utils.toNumber(row.get('low'));
-  var close = anychart.utils.toNumber(row.get('close'));
-  var rv = anychart.math.cci.calculate(context, high, low, close);
+  var rv = anychart.math.cci.calculate(context, close, high, low);
   row.set('result', rv);
 };
 

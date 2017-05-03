@@ -87,12 +87,12 @@ anychart.math.dmi.startFunction = function(context) {
 /**
  * Calculates DMI value.
  * @param {anychart.math.dmi.Context} context
+ * @param {number} close
  * @param {number} high
  * @param {number} low
- * @param {number} close
  * @return {Array.<number>}
  */
-anychart.math.dmi.calculate = function(context, high, low, close) {
+anychart.math.dmi.calculate = function(context, close, high, low) {
   if (isNaN(high) || isNaN(low) || isNaN(close))
     return [NaN, NaN, NaN];
 
@@ -263,10 +263,10 @@ anychart.math.dmi.calculate = function(context, high, low, close) {
  * @this {anychart.math.dmi.Context}
  */
 anychart.math.dmi.calculationFunction = function(row, context) {
+  var close = anychart.utils.toNumber(row.get('close'));
   var high = anychart.utils.toNumber(row.get('high'));
   var low = anychart.utils.toNumber(row.get('low'));
-  var close = anychart.utils.toNumber(row.get('close'));
-  var rv = anychart.math.dmi.calculate(context, high, low, close);
+  var rv = anychart.math.dmi.calculate(context, close, high, low);
   row.set('pdiResult', rv[0]);
   row.set('ndiResult', rv[1]);
   row.set('adxResult', rv[2]);

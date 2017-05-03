@@ -60,13 +60,13 @@ anychart.math.adl.startFunction = function(context) {
 /**
  * Calculates ADL value.
  * @param {Object} context
+ * @param {number} close
  * @param {number} high
  * @param {number} low
- * @param {number} close
  * @param {number} volume
  * @return {number}
  */
-anychart.math.adl.calculate = function(context, high, low, close, volume) {
+anychart.math.adl.calculate = function(context, close, high, low, volume) {
   if (isNaN(high) || isNaN(low) || isNaN(close) || isNaN(volume)) {
     return NaN;
   } else {
@@ -109,11 +109,11 @@ anychart.math.adl.calculate = function(context, high, low, close, volume) {
  * @this {anychart.math.adl.Context}
  */
 anychart.math.adl.calculationFunction = function(row, context) {
+  var close = anychart.utils.toNumber(row.get('close'));
   var high = anychart.utils.toNumber(row.get('high'));
   var low = anychart.utils.toNumber(row.get('low'));
-  var close = anychart.utils.toNumber(row.get('close'));
   var volume = anychart.utils.toNumber(row.get('volume'));
-  var rv = anychart.math.adl.calculate(context, high, low, close, volume);
+  var rv = anychart.math.adl.calculate(context, close, high, low, volume);
   row.set('result', rv);
 };
 
