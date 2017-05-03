@@ -68,7 +68,7 @@ anychart.core.drawers.Mekko.prototype.updatePointOnAnimate = function(point) {
   var shapes = /** @type {Object.<acgraph.vector.Path>} */(point.meta('shapes'));
   for (var i in shapes)
     shapes[i].clear();
-  this.drawPoint_(point, shapes);
+  this.drawPoint_(point, shapes, true);
 };
 
 
