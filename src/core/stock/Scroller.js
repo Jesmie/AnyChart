@@ -968,6 +968,24 @@ anychart.core.stock.Scroller.prototype.cmf = function(mapping, opt_period, opt_s
 
 
 /**
+ * Creates DMI indicator on the chart.
+ * @param {!anychart.data.TableMapping} mapping
+ * @param {number=} opt_period
+ * @param {number=} opt_adxPeriod
+ * @param {boolean=} opt_useWildersSmoothing
+ * @param {anychart.enums.StockSeriesType=} opt_pdiSeriesType
+ * @param {anychart.enums.StockSeriesType=} opt_ndiSeriesType
+ * @param {anychart.enums.StockSeriesType=} opt_adxSeriesType
+ * @return {anychart.core.stock.indicators.DMI}
+ */
+anychart.core.stock.Scroller.prototype.dmi = function(mapping, opt_period, opt_adxPeriod, opt_useWildersSmoothing, opt_pdiSeriesType, opt_ndiSeriesType, opt_adxSeriesType) {
+  var result = new anychart.core.stock.indicators.DMI(this, mapping, opt_period, opt_adxPeriod, opt_useWildersSmoothing, opt_pdiSeriesType, opt_ndiSeriesType, opt_adxSeriesType);
+  this.indicators_.push(result);
+  return result;
+};
+
+
+/**
  * Creates EMA indicator on the chart.
  * @param {!anychart.data.TableMapping} mapping
  * @param {number=} opt_period
@@ -1767,6 +1785,7 @@ anychart.core.stock.Scroller.prototype.setupByJSON = function(config, opt_defaul
   proto['bbandsWidth'] = proto.bbandsWidth;
   proto['cci'] = proto.cci;
   proto['cmf'] = proto.cmf;
+  proto['dmi'] = proto.dmi;
   proto['ema'] = proto.ema;
   proto['kdj'] = proto.kdj;
   proto['macd'] = proto.macd;

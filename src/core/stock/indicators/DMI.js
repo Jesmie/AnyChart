@@ -11,21 +11,41 @@ goog.require('anychart.utils');
  * @param {!(anychart.core.stock.Plot|anychart.core.stock.Scroller)} plot
  * @param {!anychart.data.TableMapping} mapping
  * @param {number=} opt_period
- * @param {anychart.enums.StockSeriesType=} opt_seriesType
+ * @param {number=} opt_adxPeriod
+ * @param {boolean=} opt_useWildersSmoothing
+ * @param {anychart.enums.StockSeriesType=} opt_pdiSeriesType
+ * @param {anychart.enums.StockSeriesType=} opt_ndiSeriesType
+ * @param {anychart.enums.StockSeriesType=} opt_adxSeriesType
  * @constructor
  * @extends {anychart.core.stock.indicators.Base}
  */
-anychart.core.stock.indicators.DMI = function(plot, mapping, opt_period, opt_seriesType) {
+anychart.core.stock.indicators.DMI = function(plot, mapping, opt_period, opt_adxPeriod, opt_useWildersSmoothing, opt_pdiSeriesType, opt_ndiSeriesType, opt_adxSeriesType) {
   anychart.core.stock.indicators.DMI.base(this, 'constructor', plot, mapping);
 
   /**
-   * DMI period.
+   * DI period.
    * @type {number}
    * @private
    */
-  this.period_ = anychart.utils.normalizeToNaturalNumber(opt_period, 20, false);
+  this.period_ = anychart.utils.normalizeToNaturalNumber(opt_period, 14, false);
 
-  this.declareSeries('main', opt_seriesType);
+  /**
+   * ADX period.
+   * @type {number}
+   * @private
+   */
+  this.adxPeriod_ = anychart.utils.normalizeToNaturalNumber(opt_adxPeriod, 14, false);
+
+  /**
+   * Wilders smoothing.
+   * @type {boolean}
+   * @private
+   */
+  this.useWildersSmoothing_ = goog.isDef(opt_useWildersSmoothing) ? !!opt_useWildersSmoothing : true;
+
+  this.declareSeries('pdi', opt_pdiSeriesType);
+  this.declareSeries('ndi', opt_ndiSeriesType);
+  this.declareSeries('adx', opt_adxSeriesType);
   this.init();
 };
 goog.inherits(anychart.core.stock.indicators.DMI, anychart.core.stock.indicators.Base);
@@ -33,38 +53,70 @@ goog.inherits(anychart.core.stock.indicators.DMI, anychart.core.stock.indicators
 
 /** @inheritDoc */
 anychart.core.stock.indicators.DMI.prototype.createComputer = function(mapping) {
-  return anychart.math.dmi.createComputer(mapping, this.period_);
+  return anychart.math.dmi.createComputer(mapping, this.period_, this.adxPeriod_, this.useWildersSmoothing_);
 };
 
 
 /** @inheritDoc */
 anychart.core.stock.indicators.DMI.prototype.createNameForSeries = function(seriesId, series) {
-  return 'DMI(' + this.period_ + ')';
+  switch (seriesId) {
+    case 'pdi':
+      return '+DI(' + this.period_ + ')';
+    case 'ndi':
+      return '-DI(' + this.period_ + ')';
+    case 'adx':
+      return 'ADX(' + this.adxPeriod_ + ')';
+  }
+  return '';
 };
 
 
 /** @inheritDoc */
 anychart.core.stock.indicators.DMI.prototype.setupMapping = function(mapping, computer, seriesId, series) {
-  // TODO: remove if there is only one series
   switch (seriesId) {
-    case 'seriesId1':
-      mapping.addField('value', computer.getFieldIndex('result1'));
+    case 'pdi':
+      mapping.addField('value', computer.getFieldIndex('pdiResult'));
       break;
-    case 'seriesId2':
-      mapping.addField('value', computer.getFieldIndex('result2'));
+    case 'ndi':
+      mapping.addField('value', computer.getFieldIndex('ndiResult'));
+      break;
+    case 'adx':
+      mapping.addField('value', computer.getFieldIndex('adxResult'));
       break;
   }
 };
 
 
 /**
- * Getter for the indicator series or setter for it's type. If passed - recreates the series.
+ * Getter for the indicator +DI series or setter for it's type. If passed - recreates the series.
  * @param {anychart.enums.StockSeriesType=} opt_type
  * @return {anychart.core.stock.indicators.DMI|anychart.core.series.Stock}
  */
-anychart.core.stock.indicators.DMI.prototype.series = function(opt_type) {
+anychart.core.stock.indicators.DMI.prototype.pdiSeries = function(opt_type) {
   return /** @type {anychart.core.stock.indicators.DMI|anychart.core.series.Stock} */(
-      this.seriesInternal('main', opt_type));
+      this.seriesInternal('pdi', opt_type));
+};
+
+
+/**
+ * Getter for the indicator -DI series or setter for it's type. If passed - recreates the series.
+ * @param {anychart.enums.StockSeriesType=} opt_type
+ * @return {anychart.core.stock.indicators.DMI|anychart.core.series.Stock}
+ */
+anychart.core.stock.indicators.DMI.prototype.ndiSeries = function(opt_type) {
+  return /** @type {anychart.core.stock.indicators.DMI|anychart.core.series.Stock} */(
+      this.seriesInternal('ndi', opt_type));
+};
+
+
+/**
+ * Getter for the indicator ADX series or setter for it's type. If passed - recreates the series.
+ * @param {anychart.enums.StockSeriesType=} opt_type
+ * @return {anychart.core.stock.indicators.DMI|anychart.core.series.Stock}
+ */
+anychart.core.stock.indicators.DMI.prototype.adxSeries = function(opt_type) {
+  return /** @type {anychart.core.stock.indicators.DMI|anychart.core.series.Stock} */(
+      this.seriesInternal('adx', opt_type));
 };
 
 
@@ -86,9 +138,49 @@ anychart.core.stock.indicators.DMI.prototype.period = function(opt_value) {
 };
 
 
+/**
+ * Getter and setter for the adx period.
+ * @param {number=} opt_value
+ * @return {anychart.core.stock.indicators.DMI|number}
+ */
+anychart.core.stock.indicators.DMI.prototype.adxPeriod = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    var period = anychart.utils.normalizeToNaturalNumber(opt_value, this.adxPeriod_, false);
+    if (period != this.adxPeriod_) {
+      this.adxPeriod_ = period;
+      this.reinitComputer();
+    }
+    return this;
+  }
+  return this.adxPeriod_;
+};
+
+
+/**
+ * Getter and setter for the Wilders smoothing.
+ * @param {boolean=} opt_value
+ * @return {anychart.core.stock.indicators.DMI|boolean}
+ */
+anychart.core.stock.indicators.DMI.prototype.useWildersSmoothing = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    var useWildersSmoothing = !!opt_value;
+    if (useWildersSmoothing != this.useWildersSmoothing_) {
+      this.useWildersSmoothing_ = useWildersSmoothing;
+      this.reinitComputer();
+    }
+    return this;
+  }
+  return this.useWildersSmoothing_;
+};
+
+
 //exports
 (function() {
   var proto = anychart.core.stock.indicators.DMI.prototype;
-  proto['series'] = proto.series;
+  proto['pdiSeries'] = proto.pdiSeries;
+  proto['ndiSeries'] = proto.ndiSeries;
+  proto['adxSeries'] = proto.adxSeries;
   proto['period'] = proto.period;
+  proto['adxPeriod'] = proto.adxPeriod;
+  proto['useWildersSmoothing'] = proto.useWildersSmoothing;
 })();
