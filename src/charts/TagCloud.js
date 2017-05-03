@@ -21,17 +21,32 @@ anychart.charts.TagCloud = function(opt_data, opt_settings) {
   this.cw = 1 << 11 >> 5;
   this.ch = 1 << 11;
 
-  this.minFontSize = 10;
-  this.maxFontSize = 3000;
+  /**
+   * Minimum font size.
+   * @type {Number}
+   */
+  this.minFontSize = NaN;
+
+  /**
+   * Maximum font size.
+   * @type {Number}
+   */
+  this.maxFontSize = NaN;
+
+  /**
+   * Theme settings.
+   * @type {Object}
+   */
+  this.themeSettings = {};
+
+  /**
+   * Own settings (Settings set by user with API).
+   * @type {Object}
+   */
+  this.ownSettings = {};
 
   this.colorScale = anychart.scales.linearColor(anychart.color.singleHueProgression('#3b5998'));
-  this.scale_ = anychart.scales.linear()
-      .minimum(this.minFontSize)
-      .maximum(this.maxFontSize);
-
-  this.angleCount = 7;
-  this.angleMin = -90;
-  this.angleMax = 90;
+  this.scale_ = anychart.scales.linear();
 
   this.data(opt_data || null, opt_settings);
 };
@@ -50,7 +65,9 @@ goog.inherits(anychart.charts.TagCloud, anychart.core.SeparateChart);
  */
 anychart.charts.TagCloud.prototype.SUPPORTED_CONSISTENCY_STATES =
     anychart.core.SeparateChart.prototype.SUPPORTED_CONSISTENCY_STATES |
-    anychart.ConsistencyState.TAG_CLOUD_DATA;
+    anychart.ConsistencyState.TAG_CLOUD_DATA |
+    anychart.ConsistencyState.TAG_CLOUD_ANGLES |
+    anychart.ConsistencyState.APPEARANCE;
 
 
 /** @inheritDoc */
@@ -98,28 +115,21 @@ anychart.charts.TagCloud.prototype.SIMPLE_PROPS_DESCRIPTORS = (function() {
       anychart.enums.PropertyHandlerType.SINGLE_ARG,
       'fromAngle',
       anychart.core.settings.numberNormalizer,
-      anychart.ConsistencyState.BOUNDS,
+      anychart.ConsistencyState.TAG_CLOUD_ANGLES,
       anychart.Signal.NEEDS_REDRAW);
 
   map['toAngle'] = anychart.core.settings.createDescriptor(
       anychart.enums.PropertyHandlerType.SINGLE_ARG,
       'toAngle',
       anychart.enums.numberNormalizer,
-      anychart.ConsistencyState.BOUNDS,
+      anychart.ConsistencyState.TAG_CLOUD_ANGLES,
       anychart.Signal.NEEDS_REDRAW);
-
-  map['orientation'] = anychart.core.settings.createDescriptor(
-      anychart.enums.PropertyHandlerType.SINGLE_ARG,
-      'orientation',
-      anychart.enums.normalizeOrientation,
-      anychart.ConsistencyState.BOUNDS,
-      anychart.Signal.NEEDS_REDRAW | anychart.Signal.BOUNDS_CHANGED);
 
   map['anglesCount'] = anychart.core.settings.createDescriptor(
       anychart.enums.PropertyHandlerType.SINGLE_ARG,
       'anglesCount',
       anychart.core.settings.numberNormalizer,
-      anychart.ConsistencyState.BOUNDS,
+      anychart.ConsistencyState.TAG_CLOUD_ANGLES,
       anychart.Signal.NEEDS_REDRAW);
 
   return map;
@@ -219,6 +229,8 @@ anychart.charts.TagCloud.prototype.setOption = function(name, value) {
 anychart.charts.TagCloud.prototype.check = function(flags) {
   return true;
 };
+
+
 //endregion
 //region --- Private properties
 //------------------------------------------------------------------------------
@@ -287,14 +299,15 @@ anychart.charts.TagCloud.prototype.data = function(opt_value, opt_settings) {
 
 /**
  * Tags rotation angles.
- * @param {Array.<number>} opt_value .
+ * @param {Array.<number>=} opt_value .
  * @return {Array.<number>|anychart.charts.TagCloud}
  */
 anychart.charts.TagCloud.prototype.angles = function(opt_value) {
   if (goog.isDef(opt_value)) {
+    opt_value = goog.isArray(opt_value) ? opt_value : null;
     if (this.angles_ != opt_value) {
       this.angles_ = opt_value;
-      // this.invalidate();
+      this.invalidate(anychart.ConsistencyState.APPEARANCE | anychart.ConsistencyState.BOUNDS, anychart.Signal.NEEDS_REDRAW);
     }
     return this;
   }
@@ -304,7 +317,7 @@ anychart.charts.TagCloud.prototype.angles = function(opt_value) {
 
 /**
  * Tags rotation angles.
- * @param {anychart.scales.Linear} opt_value .
+ * @param {anychart.scales.Linear=} opt_value .
  * @return {anychart.scales.Linear|anychart.charts.TagCloud}
  */
 anychart.charts.TagCloud.prototype.scale = function(opt_value) {
@@ -321,18 +334,16 @@ anychart.charts.TagCloud.prototype.scale = function(opt_value) {
 
 //endregion
 //region --- Utils
-anychart.charts.TagCloud.prototype.getAngle = function(ratio) {
-  var range = (this.angleMax - this.angleMin);
-  return this.angleMin + (range / (this.angleCount - 1) * ratio);
-};
-
 /**
- *  
+ * Calculating font size.
+ * @param {Object} d Tag object.
  */
 anychart.charts.TagCloud.prototype.calculateMaxFontSize = function(d) {
-  var scale = this.scale_;
   var w = this.w / 3;
   var h = this.h / 3;
+
+  var minFontSize = this.h / 50;
+  var maxFontSize = ~~h;
 
   var evaluator = function(fontSize) {
     ///
@@ -365,16 +376,24 @@ anychart.charts.TagCloud.prototype.calculateMaxFontSize = function(d) {
     return res;
   };
 
-  var fonts = goog.array.range(this.minFontSize, this.maxFontSize + 1);
+  var fonts = goog.array.range(minFontSize, maxFontSize + 1);
   var res = goog.array.binarySelect(fonts, evaluator);
   if (res < 0) {
     res = ~res - 1;
   }
-  var fontSize = fonts[goog.math.clamp(res, 0, fonts.length)];
-  scale.maximum(fontSize);
+
+  this.minFontSize = minFontSize;
+  this.maxFontSize = fonts[goog.math.clamp(res, 0, fonts.length)];
 };
 
 
+/**
+ * Creates cloud sprites.
+ * @param {{context: CanvasRenderingContext2D, ratio: number}} contextAndRatio
+ * @param {Object} d .
+ * @param {Array.<Object>} data .
+ * @param {number} di .
+ */
 anychart.charts.TagCloud.prototype.cloudSprite = function(contextAndRatio, d, data, di) {
   if (d.sprite) return;
   var c = contextAndRatio.context,
@@ -462,6 +481,13 @@ anychart.charts.TagCloud.prototype.cloudSprite = function(contextAndRatio, d, da
   }
 };
 
+
+/**
+ * @param {Object} tag .
+ * @param {Array.<number>} board .
+ * @param {number} sw .
+ * @return {boolean}
+ */
 anychart.charts.TagCloud.prototype.cloudCollide = function(tag, board, sw) {
   sw >>= 5;
   var sprite = tag.sprite,
@@ -482,6 +508,12 @@ anychart.charts.TagCloud.prototype.cloudCollide = function(tag, board, sw) {
   return false;
 };
 
+
+/**
+ * Cloud Bounds.
+ * @param {Array.<Object>} bounds .
+ * @param {Object} d .
+ */
 anychart.charts.TagCloud.prototype.cloudBounds = function(bounds, d) {
   var b0 = bounds[0],
       b1 = bounds[1];
@@ -491,20 +523,37 @@ anychart.charts.TagCloud.prototype.cloudBounds = function(bounds, d) {
   if (d.y + d.y1 > b1.y) b1.y = d.y + d.y1;
 };
 
+
+/**
+ * Returns whether rects intersect.
+ * @param {Object} a .
+ * @param {Array.<Object>} b .
+ * @return {boolean}
+ */
 anychart.charts.TagCloud.prototype.collideRects = function(a, b) {
   return a.x + a.x1 > b[0].x && a.x + a.x0 < b[1].x && a.y + a.y1 > b[0].y && a.y + a.y0 < b[1].y;
 };
 
-anychart.charts.TagCloud.prototype.archimedeanSpiral = function(size) {
-  var e = size[0] / size[1];
+
+/**
+ * Returns function of archimedean spiral distribution.
+ * @return {Function}
+ */
+anychart.charts.TagCloud.prototype.archimedeanSpiral = function() {
+  var e = this.w / this.h;
   return function(t) {
     return [e * (t *= .1) * Math.cos(t), t * Math.sin(t)];
   };
 };
 
-anychart.charts.TagCloud.prototype.rectangularSpiral = function(size) {
+
+/**
+ * Returns function of rectangular spiral distribution.
+ * @return {Function}
+ */
+anychart.charts.TagCloud.prototype.rectangularSpiral = function() {
   var dy = 4,
-      dx = dy * size[0] / size[1],
+      dx = dy * this.w / this.h,
       x = 0,
       y = 0;
   return function(t) {
@@ -528,6 +577,12 @@ anychart.charts.TagCloud.prototype.rectangularSpiral = function(size) {
   };
 };
 
+
+/**
+ * Returns array of zero .
+ * @param {number} n .
+ * @return {Array.<number>}
+ */
 anychart.charts.TagCloud.prototype.zeroArray = function(n) {
   var a = [],
       i = -1;
@@ -535,19 +590,30 @@ anychart.charts.TagCloud.prototype.zeroArray = function(n) {
   return a;
 };
 
+
+/**
+ * Returns canvas dom element.
+ * @return {Element}
+ */
 anychart.charts.TagCloud.prototype.cloudCanvas = function() {
-  return this.canvas ? this.canvas : (this.canvas = document.createElement("canvas"));
+  return this.canvas ? this.canvas : (this.canvas = document.createElement('canvas'));
 };
 
+
+/**
+ * Returns canvas context and ratio.
+ * @param {Element} canvas
+ * @return {{context: CanvasRenderingContext2D, ratio: number}}
+ */
 anychart.charts.TagCloud.prototype.getContext = function(canvas) {
   canvas.width = canvas.height = 1;
-  var ratio = Math.sqrt(canvas.getContext("2d").getImageData(0, 0, 1, 1).data.length >> 2);
+  var ratio = Math.sqrt(canvas.getContext('2d').getImageData(0, 0, 1, 1).data.length >> 2);
   canvas.width = (this.cw << 5) / ratio;
   canvas.height = this.ch / ratio;
 
-  var context = canvas.getContext("2d");
-  context.fillStyle = context.strokeStyle = "red";
-  context.textAlign = "center";
+  var context = canvas.getContext('2d');
+  context.fillStyle = context.strokeStyle = 'red';
+  context.textAlign = 'center';
 
   return {
     context: context,
@@ -555,12 +621,20 @@ anychart.charts.TagCloud.prototype.getContext = function(canvas) {
   };
 };
 
+
+/**
+ * Placing tag to cloud.
+ * @param {Array.<number>} board .
+ * @param {Object} tag .
+ * @param {Array.<Object>} bounds ,
+ * @return {boolean}
+ */
 anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
   var startX = tag.x,
       startY = tag.y,
       maxDelta = Math.sqrt(this.w * this.w + this.h * this.h),
 
-      s = this.archimedeanSpiral([this.w, this.h]),
+      s = (this.getOption('mode') == anychart.enums.TagCloudMode.SPIRAL ? this.archimedeanSpiral : this.rectangularSpiral)(),
       // s = this.rectangularSpiral([this.w, this.h]),
 
       // dt = Math.random() < .5 ? 1 : -1,
@@ -614,145 +688,62 @@ anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
  */
 anychart.charts.TagCloud.prototype.calculate = function() {
   var scale = this.scale_;
-  var w = this.w;
-  var h = this.h;
+  var anglesCount, fromAngle, toAngle, range, i;
+  if (this.hasInvalidationState(anychart.ConsistencyState.TAG_CLOUD_ANGLES)) {
+    anglesCount = this.getOption('anglesCount');
+    fromAngle = this.getOption('fromAngle');
+    toAngle = this.getOption('toAngle');
+
+    range = (toAngle - fromAngle);
+
+    this.calculatedAngles_ = [];
+    for (i = 0; i < anglesCount; i++) {
+      this.calculatedAngles_.push(fromAngle + (range / (anglesCount == 1 ? anglesCount : anglesCount - 1) * i));
+    }
+
+    if (!this.angles_)
+      this.invalidate(anychart.ConsistencyState.APPEARANCE | anychart.ConsistencyState.BOUNDS);
+
+    this.markConsistent(anychart.ConsistencyState.TAG_CLOUD_ANGLES);
+  }
 
   if (this.hasInvalidationState(anychart.ConsistencyState.TAG_CLOUD_DATA)) {
     var iterator = this.data_.getIterator();
 
-    var normalizedData = [];
-    while (iterator.advance()) {
-      var key = iterator.get('tag');
-      var value = iterator.get('value');
-      normalizedData.push({
-        rowIndex: iterator.getIndex(),
-        key: key,
-        value: value
-      });
+    this.tagsPool = [];
+    if (this.normalizedData) {
+      this.normalizedData.forEach(function(d, i) {
+        goog.dom.removeNode(d.textEl);
+        this.tagsPool[i] = d;
+      }, this);
     }
-    var max = normalizedData[0].value;
 
+    this.normalizedData = [];
+    scale.startAutoCalc();
+    while (iterator.advance()) {
+      var key = iterator.get('tag'),
+          value = iterator.get('value'),
+          index = iterator.getIndex(),
+          item = this.tagsPool[index] ? this.tagsPool[index] : {};
 
-    this.dataFormatted_ = normalizedData.map(function(d, i) {
-      d.text = d.key;
-      d.font = 'Times new roman';
-      d.style = 'normal';
-      d.weight = 'normal';
-      d.rotate = this.getAngle(~~(d.value % this.angleCount));
-      // d.rotate = (~~(Math.random() * 6) - 3) * 30;
-      // d.rotate = 45;
-      d.size = ~~scale.inverseTransform(d.value / max);
-      d.sizeRatio = d.value / max;
-      d.padding = 1;
-      return d;
-    }, this).sort(function(a, b) {
-      return b.size - a.size;
+      item.rowIndex = index;
+      item.text = key;
+      item.value = value;
+      item.drawed = false;
+
+      this.normalizedData.push(item);
+
+      scale.extendDataRange(value);
+    }
+    scale.finishAutoCalc();
+
+    this.normalizedData.sort(function(a, b) {
+      return b.value - a.value;
     });
 
+    this.invalidate(anychart.ConsistencyState.APPEARANCE | anychart.ConsistencyState.BOUNDS);
     this.markConsistent(anychart.ConsistencyState.TAG_CLOUD_DATA);
   }
-
-  var n = this.dataFormatted_.length,
-      topTag = this.dataFormatted_[0],
-      i = -1,
-      bounds = null,
-      contextAndRatio = this.getContext(this.cloudCanvas()),
-      board = this.zeroArray((this.w >> 5) * this.h);
-
-  this.calculateMaxFontSize(topTag);
-  max = topTag.value;
-
-  //sets fontSize to tags.
-  this.dataFormatted_.forEach(function(d) {
-    d.size = ~~scale.inverseTransform(d.value / max);
-    delete d.sprite;
-  });
-
-  while (++i < n) {
-    var d = this.dataFormatted_[i];
-    d.x = this.w >> 1;
-    d.y = this.h >> 1;
-    this.cloudSprite(contextAndRatio, d, this.dataFormatted_, i);
-    if (d.hasText && this.place(board, d, bounds)) {
-      if (bounds) this.cloudBounds(bounds, d);
-      else bounds = [{x: d.x + d.x0, y: d.y + d.y0}, {x: d.x + d.x1, y: d.y + d.y1}];
-      d.x -= this.w >> 1;
-      d.y -= this.h >> 1;
-    }
-  }
-
-  var scale_ = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
-  if (!this.layer_) {
-    this.layer_ = this.container().unmanagedLayer();
-    this.textElementsLayer = acgraph.getRenderer().createLayerElement();
-    this.layer_.content(this.textElementsLayer);
-  }
-
-  this.layer_
-      .setTransformationMatrix(scale_, 0, 0, scale_, this.internalBounds_.left + (w >> 1), this.internalBounds_.top + (h >> 1));
-
-  this.dataFormatted_.forEach(function(t) {
-    var text;
-    // if (t.textEl) t.textEl.dispose();
-    // var text = t.textEl = container.text();
-
-    if (t.textEl) {
-      // var dx = this.internalBounds_.left + this.internalBounds_.width / 2 - (t.srcParentBounds.left + t.srcParentBounds.width / 2);
-      // var dy = this.internalBounds_.top + this.internalBounds_.height / 2 - (t.srcParentBounds.top + t.srcParentBounds.height / 2);
-
-      // t.textEl.domElement().setAttribute('transform', 'translate(' + [t.x + dx, t.y + dy] + ') rotate(' + t.rotate + ')');
-      t.textEl.setAttribute('font-size', t.size);
-      t.textEl.setAttribute('transform', 'translate(' + [t.x, t.y] + ') rotate(' + t.rotate + ')');
-
-      // t.textEl.setTransformationMatrix(1, 0, 0, 1, 0, 0);
-      //
-      // t.textEl
-      //     .translate(t.x + dx, t.y + dy);
-      //
-      // var bounds = t.textEl.getBoundsWithTransform(t.textEl.getFullTransformation());
-      // var cx = bounds.left + bounds.width / 2;
-      // var cy = bounds.top + bounds.height / 2;
-      //
-      // t.textEl
-      //     .rotate(t.rotate, cx, cy);
-
-      // t.textEl.setTransformationMatrix(1, 0, 0, 1, 0, 0);
-      // t.textEl
-      //     .translate(t.x, t.y)
-      //     .rotateByAnchor(t.rotate);
-    } else {
-      // text = t.textEl = container.text();
-      text = t.textEl = acgraph.getRenderer().createTextElement();
-
-      // t.srcParentBounds = this.internalBounds_.clone();
-
-      var fill = this.colorScale.valueToColor(t.sizeRatio);
-      // text
-      //     .translate(t.x, t.y)
-      //     .rotateByAnchor(t.rotate)
-      //     .fontSize(t.size)
-      //     .fontFamily(t.font)
-      //     .text(t.text.toLowerCase())
-      //     .color(fill);
-
-      text.innerHTML = t.text.toLowerCase();
-      text.setAttribute('font-size', t.size);
-      text.setAttribute('font-family', t.font);
-      text.setAttribute('fill', fill);
-      text.setAttribute('transform', 'translate(' + [t.x, t.y] + ')rotate(' + t.rotate + ')');
-      text.setAttribute('text-anchor', 'middle');
-
-      this.textElementsLayer.appendChild(text);
-
-      // text.domElement().setAttribute('transform', "translate(" + [t.x, t.y] + ")rotate(" + t.rotate + ")");
-      // text.domElement().setAttribute('y', 0);
-      // text.domElement().setAttribute('text-anchor', 'middle');
-
-      // text.attr('transform', 'translate(' + [t.x, t.y] + ') rotate(' + t.rotate + ')');
-      // text.attr('y', 0);
-      // text.attr('text-anchor', 'middle');
-    }
-  }, this);
 };
 
 
@@ -760,19 +751,174 @@ anychart.charts.TagCloud.prototype.calculate = function() {
 //region --- Drawing
 /** @inheritDoc */
 anychart.charts.TagCloud.prototype.drawContent = function(bounds) {
+  var scale = this.scale_,
+      arrAngles, anglesCount, maxValue;
   this.internalBounds_ = bounds;
   this.w = bounds.width;
   this.h = bounds.height;
 
   this.calculate();
+
+  if (this.hasInvalidationState(anychart.ConsistencyState.APPEARANCE)) {
+    arrAngles = this.angles_ ? this.angles_ : this.calculatedAngles_;
+    anglesCount = arrAngles.length;
+    maxValue = this.normalizedData[0].value;
+
+    this.normalizedData.forEach(function(d, i) {
+      d.font = 'Times new roman';
+      d.style = 'normal';
+      d.weight = 'normal';
+      d.padding = 1;
+
+      d.rotate = arrAngles[d.value % anglesCount];
+      // d.rotate = (~~(Math.random() * 6) - 3) * 30;
+      // d.rotate = 45;
+      // d.size = ~~scale.inverseTransform(d.value / max);
+      d.sizeRatio = d.value / maxValue;
+    }, this);
+
+    this.markConsistent(anychart.ConsistencyState.APPEARANCE);
+  }
+
+  if (this.hasInvalidationState(anychart.ConsistencyState.BOUNDS)) {
+    var n = this.normalizedData.length,
+        topTag = this.normalizedData[0],
+        i = -1,
+        cloudBounds = null,
+        contextAndRatio = this.getContext(this.cloudCanvas()),
+        board = this.zeroArray((this.w >> 5) * this.h);
+
+    this.calculateMaxFontSize(topTag);
+
+    this.normalizedData.forEach(function(d) {
+      d.size = ~~(this.minFontSize + scale.transform(d.value) * (this.maxFontSize - this.minFontSize));
+      delete d.sprite;
+    }, this);
+
+    while (++i < n) {
+      var d = this.normalizedData[i];
+      d.x = this.w >> 1;
+      d.y = this.h >> 1;
+      this.cloudSprite(contextAndRatio, d, this.normalizedData, i);
+      if (d.hasText && this.place(board, d, cloudBounds)) {
+        if (cloudBounds) this.cloudBounds(cloudBounds, d);
+        else cloudBounds = [{x: d.x + d.x0, y: d.y + d.y0}, {x: d.x + d.x1, y: d.y + d.y1}];
+        d.x -= this.w >> 1;
+        d.y -= this.h >> 1;
+      }
+    }
+
+    var scale_ = cloudBounds ?
+        Math.min(
+            this.w / Math.abs(cloudBounds[1].x - this.w / 2),
+            this.w / Math.abs(cloudBounds[0].x - this.w / 2),
+            this.h / Math.abs(cloudBounds[1].y - this.h / 2),
+            this.h / Math.abs(cloudBounds[0].y - this.h / 2)) / 2 :
+        1;
+
+    if (!this.layer_) {
+      this.layer_ = this.container().unmanagedLayer();
+      this.textElementsLayer = acgraph.getRenderer().createLayerElement();
+      this.layer_.content(this.textElementsLayer);
+    }
+
+    this.layer_
+        .setTransformationMatrix(scale_, 0, 0, scale_, this.internalBounds_.left + (this.w >> 1), this.internalBounds_.top + (this.h >> 1));
+
+    this.normalizedData.forEach(function(t) {
+      var text;
+      // if (t.textEl) t.textEl.dispose();
+      // var text = t.textEl = container.text();
+
+      if (t.drawed) {
+        // var dx = this.internalBounds_.left + this.internalBounds_.width / 2 - (t.srcParentBounds.left + t.srcParentBounds.width / 2);
+        // var dy = this.internalBounds_.top + this.internalBounds_.height / 2 - (t.srcParentBounds.top + t.srcParentBounds.height / 2);
+
+        // t.textEl.domElement().setAttribute('transform', 'translate(' + [t.x + dx, t.y + dy] + ') rotate(' + t.rotate + ')');
+        t.textEl.setAttribute('font-size', t.size);
+        t.textEl.setAttribute('transform', 'translate(' + [t.x, t.y] + ') rotate(' + t.rotate + ')');
+
+        // t.textEl.setTransformationMatrix(1, 0, 0, 1, 0, 0);
+        //
+        // t.textEl
+        //     .translate(t.x + dx, t.y + dy);
+        //
+        // var bounds = t.textEl.getBoundsWithTransform(t.textEl.getFullTransformation());
+        // var cx = bounds.left + bounds.width / 2;
+        // var cy = bounds.top + bounds.height / 2;
+        //
+        // t.textEl
+        //     .rotate(t.rotate, cx, cy);
+
+        // t.textEl.setTransformationMatrix(1, 0, 0, 1, 0, 0);
+        // t.textEl
+        //     .translate(t.x, t.y)
+        //     .rotateByAnchor(t.rotate);
+      } else {
+        // text = t.textEl = container.text();
+        text = t.textEl = acgraph.getRenderer().createTextElement();
+
+        // t.srcParentBounds = this.internalBounds_.clone();
+
+        var fill = this.colorScale.valueToColor(t.sizeRatio);
+        // text
+        //     .translate(t.x, t.y)
+        //     .rotateByAnchor(t.rotate)
+        //     .fontSize(t.size)
+        //     .fontFamily(t.font)
+        //     .text(t.text.toLowerCase())
+        //     .color(fill);
+
+        text.innerHTML = t.text.toLowerCase();
+        text.setAttribute('font-size', t.size);
+        text.setAttribute('font-family', t.font);
+        text.setAttribute('fill', fill);
+        text.setAttribute('transform', 'translate(' + [t.x, t.y] + ')rotate(' + t.rotate + ')');
+        text.setAttribute('text-anchor', 'middle');
+
+        this.textElementsLayer.appendChild(text);
+
+        t.drawed = true;
+
+        // text.domElement().setAttribute('transform', "translate(" + [t.x, t.y] + ")rotate(" + t.rotate + ")");
+        // text.domElement().setAttribute('y', 0);
+        // text.domElement().setAttribute('text-anchor', 'middle');
+
+        // text.attr('transform', 'translate(' + [t.x, t.y] + ') rotate(' + t.rotate + ')');
+        // text.attr('y', 0);
+        // text.attr('text-anchor', 'middle');
+      }
+    }, this);
+
+    this.markConsistent(anychart.ConsistencyState.BOUNDS);
+  }
 };
 
 
 //endregion
 //region --- Setup and Dispose
+/**
+ * Sets default settings.
+ * @param {!Object} config
+ */
+anychart.charts.TagCloud.prototype.setThemeSettings = function(config) {
+  for (var name in this.SIMPLE_PROPS_DESCRIPTORS) {
+    var val = config[name];
+    if (goog.isDef(val))
+      this.themeSettings[name] = val;
+  }
+};
+
+
 /** @inheritDoc */
 anychart.charts.TagCloud.prototype.setupByJSON = function(config, opt_default) {
-  anychart.charts.TagCloud.base(this, 'setupByJSON', config, opt_default);
+  anychart.charts.TagCloud.base(this, 'setupByJSON', config);
+
+  if (opt_default) {
+    this.setThemeSettings(config);
+  } else {
+    anychart.core.settings.deserialize(this, this.SIMPLE_PROPS_DESCRIPTORS, config);
+  }
 };
 
 

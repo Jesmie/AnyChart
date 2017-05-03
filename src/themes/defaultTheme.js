@@ -5042,6 +5042,9 @@ goog.provide('anychart.themes.defaultTheme');
     },
 
     'tagCloud': {
+      'anglesCount': 7,
+      'fromAngle': -90,
+      'toAngle': 90
     },
 
     // standalone components
