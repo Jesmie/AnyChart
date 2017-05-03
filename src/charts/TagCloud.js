@@ -20,13 +20,12 @@ anychart.charts.TagCloud = function(opt_data, opt_settings) {
   this.cloudRadians = Math.PI / 180;
   this.cw = 1 << 11 >> 5;
   this.ch = 1 << 11;
-  this.size = [900, 600];
 
   this.minFontSize = 10;
   this.maxFontSize = 3000;
 
   this.colorScale = anychart.scales.linearColor(anychart.color.singleHueProgression('#3b5998'));
-  this.scale = anychart.scales.linear()
+  this.scale_ = anychart.scales.linear()
       .minimum(this.minFontSize)
       .maximum(this.maxFontSize);
 
@@ -78,6 +77,148 @@ anychart.charts.TagCloud.prototype.getSeriesStatus = function() {
 };
 
 
+//endregion
+//region --- Descriptors
+/**
+ * Simple properties descriptors.
+ * @type {!Object.<string, anychart.core.settings.PropertyDescriptor>}
+ */
+anychart.charts.TagCloud.prototype.SIMPLE_PROPS_DESCRIPTORS = (function() {
+  /** @type {!Object.<string, anychart.core.settings.PropertyDescriptor>} */
+  var map = {};
+
+  map['mode'] = anychart.core.settings.createDescriptor(
+      anychart.enums.PropertyHandlerType.SINGLE_ARG,
+      'mode',
+      anychart.enums.normalizeTagCloudMode,
+      anychart.ConsistencyState.BOUNDS,
+      anychart.Signal.NEEDS_REDRAW);
+
+  map['fromAngle'] = anychart.core.settings.createDescriptor(
+      anychart.enums.PropertyHandlerType.SINGLE_ARG,
+      'fromAngle',
+      anychart.core.settings.numberNormalizer,
+      anychart.ConsistencyState.BOUNDS,
+      anychart.Signal.NEEDS_REDRAW);
+
+  map['toAngle'] = anychart.core.settings.createDescriptor(
+      anychart.enums.PropertyHandlerType.SINGLE_ARG,
+      'toAngle',
+      anychart.enums.numberNormalizer,
+      anychart.ConsistencyState.BOUNDS,
+      anychart.Signal.NEEDS_REDRAW);
+
+  map['orientation'] = anychart.core.settings.createDescriptor(
+      anychart.enums.PropertyHandlerType.SINGLE_ARG,
+      'orientation',
+      anychart.enums.normalizeOrientation,
+      anychart.ConsistencyState.BOUNDS,
+      anychart.Signal.NEEDS_REDRAW | anychart.Signal.BOUNDS_CHANGED);
+
+  map['anglesCount'] = anychart.core.settings.createDescriptor(
+      anychart.enums.PropertyHandlerType.SINGLE_ARG,
+      'anglesCount',
+      anychart.core.settings.numberNormalizer,
+      anychart.ConsistencyState.BOUNDS,
+      anychart.Signal.NEEDS_REDRAW);
+
+  return map;
+})();
+anychart.core.settings.populate(anychart.charts.TagCloud, anychart.charts.TagCloud.prototype.SIMPLE_PROPS_DESCRIPTORS);
+
+
+//endregion
+//region --- IResolvable implementation
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.resolutionChainCache = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    this.resolutionChainCache_ = opt_value;
+  }
+  return this.resolutionChainCache_;
+};
+
+
+/**
+ * Resolution chain getter.
+ * @return {Array.<Object|null|undefined>} - Chain of settings.
+ */
+anychart.charts.TagCloud.prototype.getResolutionChain = function() {
+  var chain = this.resolutionChainCache();
+  if (!chain) {
+    chain = goog.array.concat(this.getHighPriorityResolutionChain(), this.getMidPriorityResolutionChain(), this.getLowPriorityResolutionChain());
+    this.resolutionChainCache(chain);
+  }
+  return chain;
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.getLowPriorityResolutionChain = function() {
+  var sett = [this.autoSettings];
+  if (this.parent_) {
+    sett = goog.array.concat(sett, this.parent_.getLowPriorityResolutionChain());
+  }
+  return sett;
+};
+
+
+/**
+ * Gets chain of middle priority settings.
+ * @return {Array.<Object|null|undefined>} - Chain of settings.
+ */
+anychart.charts.TagCloud.prototype.getMidPriorityResolutionChain = function() {
+  var sett = [this.themeSettings];
+  if (this.parent_) {
+    sett = goog.array.concat(sett, this.parent_.getMidPriorityResolutionChain());
+  }
+  return sett;
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.getHighPriorityResolutionChain = function() {
+  var sett = [this.ownSettings];
+  if (this.parent_) {
+    sett = goog.array.concat(sett, this.parent_.getHighPriorityResolutionChain());
+  }
+  return sett;
+};
+
+
+//endregion
+//region --- IObjectWithSettings implementation
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.getOwnOption = function(name) {
+  return this.ownSettings[name];
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.hasOwnOption = function(name) {
+  return goog.isDefAndNotNull(this.ownSettings[name]);
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.getThemeOption = function(name) {
+  return this.themeSettings[name];
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.getOption = anychart.core.settings.getOption;
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.setOption = function(name, value) {
+  this.ownSettings[name] = value;
+};
+
+
+/** @inheritDoc */
+anychart.charts.TagCloud.prototype.check = function(flags) {
+  return true;
+};
 //endregion
 //region --- Private properties
 //------------------------------------------------------------------------------
@@ -144,9 +285,38 @@ anychart.charts.TagCloud.prototype.data = function(opt_value, opt_settings) {
 };
 
 
-anychart.charts.TagCloud.prototype.angles = function() {
-  
-}
+/**
+ * Tags rotation angles.
+ * @param {Array.<number>} opt_value .
+ * @return {Array.<number>|anychart.charts.TagCloud}
+ */
+anychart.charts.TagCloud.prototype.angles = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    if (this.angles_ != opt_value) {
+      this.angles_ = opt_value;
+      // this.invalidate();
+    }
+    return this;
+  }
+  return this.angles_;
+};
+
+
+/**
+ * Tags rotation angles.
+ * @param {anychart.scales.Linear} opt_value .
+ * @return {anychart.scales.Linear|anychart.charts.TagCloud}
+ */
+anychart.charts.TagCloud.prototype.scale = function(opt_value) {
+  if (goog.isDef(opt_value)) {
+    if (this.scale_ != opt_value) {
+      this.scale_ = opt_value;
+      // this.invalidate();
+    }
+    return this;
+  }
+  return this.scale_;
+};
 
 
 //endregion
@@ -160,7 +330,7 @@ anychart.charts.TagCloud.prototype.getAngle = function(ratio) {
  *  
  */
 anychart.charts.TagCloud.prototype.calculateMaxFontSize = function(d) {
-  var scale = this.scale;
+  var scale = this.scale_;
   var w = this.w / 3;
   var h = this.h / 3;
 
@@ -390,8 +560,8 @@ anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
       startY = tag.y,
       maxDelta = Math.sqrt(this.w * this.w + this.h * this.h),
 
-      s = this.archimedeanSpiral(this.size),
-      // s = this.rectangularSpiral(this.size),
+      s = this.archimedeanSpiral([this.w, this.h]),
+      // s = this.rectangularSpiral([this.w, this.h]),
 
       // dt = Math.random() < .5 ? 1 : -1,
       dt = 1,
@@ -443,7 +613,7 @@ anychart.charts.TagCloud.prototype.place = function(board, tag, bounds) {
  * Calculating.
  */
 anychart.charts.TagCloud.prototype.calculate = function() {
-  var scale = this.scale;
+  var scale = this.scale_;
   var w = this.w;
   var h = this.h;
 

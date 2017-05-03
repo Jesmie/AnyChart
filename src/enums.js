@@ -1461,6 +1461,34 @@ anychart.enums.normalizeStockLabelsOverlapMode = function(value, opt_default) {
 };
 
 
+/**
+ * Tag cloud mode.
+ * @enum {string}
+ */
+anychart.enums.TagCloudMode = {
+  SPIRAL: 'spiral',
+  RECT: 'rect'
+};
+
+
+/**
+ * Tag cloud mode normalizer.
+ * @param {*} value .
+ * @param {anychart.enums.TagCloudMode=} opt_default .
+ * @return {anychart.enums.TagCloudMode}
+ */
+anychart.enums.normalizeTagCloudMode = function(value, opt_default) {
+  value = (String(value)).toLowerCase();
+  switch (value) {
+    case 'spiral':
+      return anychart.enums.TagCloudMode.SPIRAL;
+    case 'rect':
+      return anychart.enums.TagCloudMode.RECT;
+  }
+  return opt_default || anychart.enums.TagCloudMode.SPIRAL;
+};
+
+
 //----------------------------------------------------------------------------------------------------------------------
 //
 //  BackgroundCornersType
