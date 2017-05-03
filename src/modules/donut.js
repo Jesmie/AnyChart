@@ -1,6 +1,7 @@
 goog.provide('anychart.modules.donut');
 
 goog.require('anychart.charts.Donut');
+goog.require('anychart.context');
 goog.require('anychart.modules.base');
 
 
@@ -16,9 +17,9 @@ goog.require('anychart.modules.base');
  */
 anychart.donut = function(opt_data, opt_csvSettings) {
     var chart = new anychart.charts.Donut(opt_data, opt_csvSettings);
-    chart.setupByVal(anychart.getFullTheme('donut'), true);
+    chart['setupByVal'](window['anychrat']['context'].getFullTheme('donut'), true);
     return chart;
 };
 
 //exports
-goog.exportSymbol('anychart.donut', anychart.donut);
+window['anychrat']['context'].exportSymbol('anychart.donut', anychart.donut);

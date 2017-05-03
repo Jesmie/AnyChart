@@ -19,7 +19,7 @@ import multiprocessing
 #           Project paths
 # =======================================================================================================================
 # java heap size in Mb
-JAVA_HEAP_SIZE = 1024
+JAVA_HEAP_SIZE = 4024
 
 # project
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -154,8 +154,8 @@ def sync_required(func):
 # =======================================================================================================================
 class OptimizationLevel:
     NONE = 'WHITESPACE_ONLY'
-    SIMPLE = 'SIMPLE_OPTIMIZATIONS'
-    ADVANCED = 'ADVANCED_OPTIMIZATIONS'
+    SIMPLE = 'SIMPLE'
+    ADVANCED = 'ADVANCED'
 
 
 def __set_pretty_print(flags):
@@ -165,21 +165,34 @@ def __set_pretty_print(flags):
 def __set_optimization_level(flags, level):
     flags.append('--compilation_level ' + level)
 
+
 def __get_output_file_arg(output_file):
     return ['--js_output_file ' + output_file]
 
 
 def __get_name_spaces(modules):
     result = []
-    for module in modules:
-        result.append("--entry_point anychart.modules.%s" % module)
+    result.append("--entry_point anychart.modules.anychart_bundle")
+    result.append("--entry_point anychart.modules.donut")
+    # for module in modules:
+    #     result.append("--entry_point anychart.modules.%s" % module)
     return result
 
 
 def __get_roots():
-    return ['--js="%s"' % os.path.join(SRC_PATH, '**.js'),
-            '--js="%s"' % os.path.join(CLOSURE_LIBRARY_PATH, '**.js'),
-            '--js="%s"' % os.path.join(GRAPHICS_SRC_PATH, '**.js')]
+    manifest_path = os.path.join(OUT_PATH, '..', 'manifest.txt')
+    f = open(manifest_path, 'r')
+    manifest = f.readlines()
+    f.close()
+
+    for i, m in enumerate(manifest):
+        manifest[i] = ('--js ' + m.strip())
+
+    return manifest
+
+    # return ['--js="%s"' % os.path.join(SRC_PATH, '**.js'),
+    #        '--js="%s"' % os.path.join(CLOSURE_LIBRARY_PATH, '**.js'),
+    #        '--js="%s"' % os.path.join(GRAPHICS_SRC_PATH, '**.js')]
 
 
 def __get_not_optimized_compiler_args():
@@ -203,11 +216,12 @@ def __get_performance_monitoring_compiler_args(is_performance_monitoring):
         '--define "anychart.PERFORMANCE_MONITORING=%s"' % flag,
     ]
 
+
 def is_not_theme_build(modules):
     return modules and len(modules) == 1 and \
-    ('anychart_ui' in modules or \
-     'chart_editor' in modules or \
-     'data_adapter' in modules)
+           ('anychart_ui' in modules or \
+            'chart_editor' in modules or \
+            'data_adapter' in modules)
 
 
 def __get_optimized_compiler_args():
@@ -261,7 +275,7 @@ def __get_optimized_compiler_args():
         '--jscomp_warning underscore',
         '--jscomp_warning visibility',
         '--output_manifest', 'out/manifest.txt',
-        '--output_module_dependencies', 'out/deps.txt'
+        '--output_module_dependencies', 'out/deps.json'
     ]
     __set_optimization_level(compiler_args, OptimizationLevel.ADVANCED)
     return compiler_args
@@ -273,7 +287,7 @@ def __get_default_compiler_args(theme, modules):
         COMPILER_PATH,
         '--charset UTF-8',
         '--define "anychart.VERSION=\'%s\'"' % __get_version(True),
-        '--dependency_mode=STRICT',
+        #'--dependency_mode=STRICT',
         # '--externs ' + EXTERNS_PATH,
         '--extra_annotation_name "includeDoc"',
         '--extra_annotation_name "illustration"',
@@ -346,94 +360,50 @@ def __build_project(develop, modules, sources, theme, debug, gzip, perf_monitori
     file_name = "%s%s%s%s" % ('_'.join(modules), dev_postfix, perf_postfix, '.min.js')
     __optimized_compiler_args = __get_optimized_compiler_args()
 
-    if sources:
-        file_name = ("%s%s%s%s" % ('-'.join(modules), dev_postfix, perf_postfix, '.js')).replace('_', '-')
-        output_file = os.path.join(OUT_PATH, file_name)
+    file_name = file_name.replace('_', '-')
+    output_file = os.path.join(OUT_PATH, file_name)
+    copyright = __get_copyrigth(modules)
+    wrapper = __get_wrapper(file_name)
+    commands = sum([__get_default_compiler_args(theme, modules),
+                    __optimized_compiler_args,
+                    __get_developers_edition_compiler_args(develop),
+                    __get_performance_monitoring_compiler_args(perf_monitoring),
+                    __get_name_spaces(modules),
+                    __get_roots(),
+                    [
+                        '--module_output_path_prefix out/',
+                        '--module core:707',
+                        '--module donut:2:core',
+                        '--module_wrapper core:(function(){%s})();',
+                        '--module_wrapper donut:(function(){%s})();',
+                    ]
+                    # __get_output_file_arg(output_file),
+                    # ['--output_wrapper "' + copyright + wrapper + '"', '--assume_function_wrapper']
+                    ], []
+                   )
 
-        tmp_file_name = "%s%s%s%s" % ('_'.join(modules), dev_postfix, perf_postfix, '_tmp.js')
-        tmp_output_file = os.path.join(OUT_PATH, tmp_file_name)
+    # debug info
+    if debug and not sources:
+        path = PROJECT_PATH.replace('\\', '/')
+        commands += ['--property_renaming_report %s' % output_file + '_prop_out.txt',
+                     '--variable_renaming_report %s' % output_file + '_var_out.txt',
+                     '--create_source_map %s' % output_file + '.map',
+                     '--source_map_location_mapping \"%s|./../\"' % path]
 
-        copyright = __get_copyrigth(modules)
-        wrapper = __get_wrapper(file_name)
+    # print build log
+    __log_compilation(output_file, args)
 
-        deps_manifest_file = os.path.join(OUT_PATH, 'deps.mf')
+    # compile css
+    if allow_compile_css:
+        if 'anychart_ui' in modules or 'anychart_bundle' in modules:
+            __compile_css(__should_gen_gzip())
 
-        __optimized_compiler_args = __get_not_optimized_compiler_args()
-        commands = sum([
-            __get_default_compiler_args(theme, modules),
-            __optimized_compiler_args,
-            __get_name_spaces(modules),
-            __get_roots(),
-            __get_output_file_arg(tmp_output_file),
-            ['--output_manifest ' + deps_manifest_file],
-        ], [])
+    # build binary file
+    __call_console_commands(commands, module=modules[0])
 
-        # print build log
-        __log_compilation(output_file, args)
-        
-        # compile css
-        if allow_compile_css:
-            if 'anychart_ui' in modules or 'anychart_bundle' or 'chart_editor' in modules:
-                __compile_css(__should_gen_gzip())
-
-        __call_console_commands(commands, module=modules[0])
-
-        output = ''
-        f = open(deps_manifest_file, 'r')
-        for line in f:
-            output += open(line.replace('\n', ''), 'r').read()
-        f.close()
-
-        output = output\
-            .replace('var COMPILED = false;', 'var COMPILED = true;')\
-            .replace('var goog = goog || {};', 'this.goog = this.goog || {};\nvar goog = this.goog;\nthis.anychart = this.anychart || {};\nvar anychart = this.anychart')
-        wrapper = wrapper.replace('%output%', output)
-
-        open(output_file, 'w').write(copyright + wrapper)
-
-        os.remove(tmp_output_file)
-        os.remove(deps_manifest_file)
-
-
-        # gzip binary file
-        if gzip:
-            __gzip_file(output_file)
-    else:
-        file_name = file_name.replace('_', '-')
-        output_file = os.path.join(OUT_PATH, file_name)
-        copyright = __get_copyrigth(modules)
-        wrapper = __get_wrapper(file_name)
-        commands = sum([__get_default_compiler_args(theme, modules),
-                        __optimized_compiler_args,
-                        __get_developers_edition_compiler_args(develop),
-                        __get_performance_monitoring_compiler_args(perf_monitoring),
-                        __get_name_spaces(modules),
-                        __get_roots(),
-                        __get_output_file_arg(output_file),
-                        ['--output_wrapper "' + copyright + wrapper + '"', '--assume_function_wrapper']], [])
-
-        # debug info
-        if debug and not sources:
-            path = PROJECT_PATH.replace('\\', '/')
-            commands += ['--property_renaming_report %s' % output_file + '_prop_out.txt',
-                         '--variable_renaming_report %s' % output_file + '_var_out.txt',
-                         '--create_source_map %s' % output_file + '.map',
-                         '--source_map_location_mapping \"%s|./../\"' % path]
-
-        # print build log
-        __log_compilation(output_file, args)
-
-        # compile css
-        if allow_compile_css:            
-            if 'anychart_ui' in modules or 'anychart_bundle' in modules:
-                __compile_css(__should_gen_gzip())
-
-        # build binary file
-        __call_console_commands(commands, module=modules[0])
-
-        # gzip binary file
-        if gzip:
-            __gzip_file(output_file)
+    # gzip binary file
+    if gzip:
+        __gzip_file(output_file)
 
 
 def __log_compilation(output_file, args):
@@ -460,7 +430,7 @@ def __log_compilation(output_file, args):
 def __call_console_commands(commands, cwd=None, module=None):
     commands = " ".join(commands).replace('\\', '\\\\')
     commands = shlex.split(commands)
-    # print commands
+    print commands
     p = subprocess.Popen(commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd)
     (output, err) = p.communicate()
     retcode = p.poll()
@@ -811,7 +781,7 @@ def __build_release():
                         os.path.join(OUT_PATH, 'export-server.jar'))
         shutil.copyfile(os.path.join(export_server_project_path, 'target', 'export-server-standalone.jar'),
                         os.path.join(OUT_PATH, 'export-server-%s-bundle-%s.jar' % (
-                        export_server_version, export_server_bundle_version)))
+                            export_server_version, export_server_bundle_version)))
     else:
         print "Error: Unable to build export server, there is no project at path: %s" % export_server_project_path
 
@@ -841,7 +811,8 @@ def __build_product_package(output_dir, binary_name, gallery_pass_func=None):
 
     # copy schemas
     shutil.copyfile(os.path.join(DIST_PATH, 'xml-schema.xsd'), os.path.join(output_dir, 'schemas', 'xml-schema.xsd'))
-    shutil.copyfile(os.path.join(DIST_PATH, 'json-schema.json'), os.path.join(output_dir, 'schemas', 'json-schema.json'))
+    shutil.copyfile(os.path.join(DIST_PATH, 'json-schema.json'),
+                    os.path.join(output_dir, 'schemas', 'json-schema.json'))
 
     # copy UI CSS
     shutil.copyfile(os.path.join(OUT_PATH, 'anychart-ui.css'), os.path.join(output_dir, 'css', 'anychart-ui.css'))
@@ -872,14 +843,14 @@ def __build_product_package(output_dir, binary_name, gallery_pass_func=None):
 
     # copy chart editor (anychart install package only)
     if binary_name == 'anychart':
-            shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.min.js'),
-                            os.path.join(output_dir, 'js', 'chart-editor.min.js'))
-            shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.min.js.gz'),
-                            os.path.join(output_dir, 'js', 'chart-editor.min.js.gz'))
-            shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.dev.min.js'),
-                            os.path.join(output_dir, 'js', 'chart-editor.dev.min.js'))
-            shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.dev.min.js.gz'),
-                            os.path.join(output_dir, 'js', 'chart-editor.dev.min.js.gz'))
+        shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.min.js'),
+                        os.path.join(output_dir, 'js', 'chart-editor.min.js'))
+        shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.min.js.gz'),
+                        os.path.join(output_dir, 'js', 'chart-editor.min.js.gz'))
+        shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.dev.min.js'),
+                        os.path.join(output_dir, 'js', 'chart-editor.dev.min.js'))
+        shutil.copyfile(os.path.join(OUT_PATH, 'chart-editor.dev.min.js.gz'),
+                        os.path.join(output_dir, 'js', 'chart-editor.dev.min.js.gz'))
 
     # copy themes
     for theme in __get_themes_list():
@@ -1055,7 +1026,7 @@ def __upload_release():
     export_server_version, export_server_bundle_version = __get_export_server_version(export_server_project_path)
     upload_list.append({'source_file': '%s/export-server.jar' % OUT_PATH, 'target': '/export-server/'})
     upload_list.append({'source_file': '%s/export-server-%s-bundle-%s.jar' % (
-    OUT_PATH, export_server_version, export_server_bundle_version), 'target': '/export-server/'})
+        OUT_PATH, export_server_version, export_server_bundle_version), 'target': '/export-server/'})
 
     # check all files exists
     should_exit = False
@@ -1246,7 +1217,7 @@ def __should_gen_gzip():
     return 'gzip' in arguments and str(arguments['gzip']) == 'True'
 
 
-#=======================================================================================================================
+# =======================================================================================================================
 #           Main
 # =======================================================================================================================
 arguments = {}
@@ -1293,7 +1264,8 @@ def __exec_main_script():
                                      default=2)
 
     # create the parser for the "contrib" command
-    contrib_parser = subparsers.add_parser('contrib', help='Synchronize project dependencies. Deprecated. Use "./build.py libs" instead')
+    contrib_parser = subparsers.add_parser('contrib',
+                                           help='Synchronize project dependencies. Deprecated. Use "./build.py libs" instead')
     contrib_parser.add_argument('-l', '--linter', action='store_true',
                                 help='Install closure linter with others contributions.')
 
@@ -1336,11 +1308,16 @@ def __exec_main_script():
     css_parser = subparsers.add_parser('css', help='Compile AnyChart UI css')
     css_parser.add_argument('-gz', '--gzip', action='store_true', help='Create gzip copy of output files.')
 
-    upload_release_parser = subparsers.add_parser('upload_release', help='Uploads release related files from /out folder to static.anychart.com and cdn.anychart.com. Invalidates CDN cache.')
-    upload_release_parser.add_argument('-v', '--version', action='store', help="Version of the release, affects only folder on the remote server. Doesn't affect code version, export server version or wherever else version. ")
-    upload_release_parser.add_argument('-nl', '--not-latest', dest='is_latest', action='store_false', help="Prevent to upload release files to 'latest' directory")
-    upload_release_parser.add_argument('-dr', '--dry-run', dest='dry_run', action='store_true', help="Print what will happen, don't really upload files.")
-    upload_release_parser.add_argument('-esp', '--export-server-path', dest='export_server_path', action='store', default=os.path.join(PROJECT_PATH, '..', 'export-server'))
+    upload_release_parser = subparsers.add_parser('upload_release',
+                                                  help='Uploads release related files from /out folder to static.anychart.com and cdn.anychart.com. Invalidates CDN cache.')
+    upload_release_parser.add_argument('-v', '--version', action='store',
+                                       help="Version of the release, affects only folder on the remote server. Doesn't affect code version, export server version or wherever else version. ")
+    upload_release_parser.add_argument('-nl', '--not-latest', dest='is_latest', action='store_false',
+                                       help="Prevent to upload release files to 'latest' directory")
+    upload_release_parser.add_argument('-dr', '--dry-run', dest='dry_run', action='store_true',
+                                       help="Print what will happen, don't really upload files.")
+    upload_release_parser.add_argument('-esp', '--export-server-path', dest='export_server_path', action='store',
+                                       default=os.path.join(PROJECT_PATH, '..', 'export-server'))
     upload_release_parser.add_argument('-hs', '--host_string', dest='host_string', action='store')
     upload_release_parser.add_argument('-ma', '--max_cdn_alias', dest='max_cdn_alias', action='store')
     upload_release_parser.add_argument('-mk', '--max_cdn_key', dest='max_cdn_key', action='store')

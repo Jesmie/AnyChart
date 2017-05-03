@@ -7,6 +7,7 @@ goog.provide('anychart.core.utils.PieInteractivityState');
 goog.require('anychart.animations.Animation');
 goog.require('anychart.animations.AnimationSerialQueue');
 goog.require('anychart.color');
+goog.require('anychart.context');
 goog.require('anychart.core.Point');
 goog.require('anychart.core.SeparateChart');
 goog.require('anychart.core.reporting');
@@ -477,6 +478,7 @@ anychart.charts.Pie = function(opt_data, opt_csvSettings) {
   this.resumeSignalsDispatching(false);
 };
 goog.inherits(anychart.charts.Pie, anychart.core.SeparateChart);
+anychart.context.PieChart = anychart.charts.Pie;
 
 
 /**

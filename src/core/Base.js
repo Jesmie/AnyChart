@@ -965,6 +965,7 @@ anychart.core.Base.prototype.removeAllListeners = function(opt_type) {
   proto['unlistenByKey'] = proto.unlistenByKey;//doc|ex
   proto['removeAllListeners'] = proto.removeAllListeners;//doc|ex
   proto['dispose'] = proto.dispose;
+  proto['setupByVal'] = proto.setupByVal;
   proto = anychart.SignalEvent.prototype;
   proto['targetNeedsRedraw'] = proto.targetNeedsRedraw;//doc
   proto['targetBoundsChanged'] = proto.targetBoundsChanged;//doc
