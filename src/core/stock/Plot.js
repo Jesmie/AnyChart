@@ -759,6 +759,22 @@ anychart.core.stock.Plot.prototype.cci = function(mapping, opt_period, opt_serie
 
 
 /**
+ * Creates CHO indicator on the chart.
+ * @param {!anychart.data.TableMapping} mapping
+ * @param {number=} opt_fastPeriod [3] Indicator period. Defaults to 3.
+ * @param {number=} opt_slowPeriod [10] Indicator period. Defaults to 10.
+ * @param {string=} opt_maType [EMA] Indicator smoothing type. Defaults to EMA.
+ * @param {anychart.enums.StockSeriesType=} opt_seriesType
+ * @return {anychart.core.stock.indicators.CHO}
+ */
+anychart.core.stock.Plot.prototype.cho = function(mapping, opt_fastPeriod, opt_slowPeriod, opt_maType, opt_seriesType) {
+  var result = new anychart.core.stock.indicators.CHO(this, mapping, opt_fastPeriod, opt_slowPeriod, opt_maType, opt_seriesType);
+  this.indicators_.push(result);
+  return result;
+};
+
+
+/**
  * Creates CMF indicator on the chart.
  * @param {!anychart.data.TableMapping} mapping
  * @param {number=} opt_period
@@ -2676,6 +2692,7 @@ anychart.core.stock.Plot.Dragger.prototype.limitY = function(y) {
   proto['bbandsB'] = proto.bbandsB;
   proto['bbandsWidth'] = proto.bbandsWidth;
   proto['cci'] = proto.cci;
+  proto['cho'] = proto.cho;
   proto['cmf'] = proto.cmf;
   proto['dmi'] = proto.dmi;
   proto['ema'] = proto.ema;
