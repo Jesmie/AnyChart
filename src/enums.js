@@ -50,7 +50,10 @@ anychart.enums.ChartTypes = {
   RESOURCE: 'resource',
   JUMP_LINE: 'jumpLine',
   STICK: 'stick',
-  PARETO: 'pareto'
+  PARETO: 'pareto',
+  MEKKO: 'mekko',
+  MOSAIC: 'mosaic',
+  BARMEKKO: 'barmekko'
 };
 
 
@@ -3019,6 +3022,36 @@ anychart.enums.normalizeHeatMapSeriesType = function(value, opt_default) {
 
 //----------------------------------------------------------------------------------------------------------------------
 //
+//  MekkoSeriesType
+//
+//----------------------------------------------------------------------------------------------------------------------
+/**
+ * List of all series types.
+ * @enum {string}
+ */
+anychart.enums.MekkoSeriesType = {
+  MEKKO: 'mekko'
+};
+
+
+/**
+ * Normalizes mekko series type.
+ * @param {*} value Series type to normalize.
+ * @param {anychart.enums.MekkoSeriesType=} opt_default Custom default value (defaults to LINE).
+ * @return {anychart.enums.MekkoSeriesType}
+ */
+anychart.enums.normalizeMekkoSeriesType = function(value, opt_default) {
+  value = (String(value)).toLowerCase();
+  switch (value) {
+    case 'mekko':
+      return anychart.enums.MekkoSeriesType.MEKKO;
+  }
+  return opt_default || anychart.enums.MekkoSeriesType.MEKKO;
+};
+
+
+//----------------------------------------------------------------------------------------------------------------------
+//
 //  Scale types
 //
 //----------------------------------------------------------------------------------------------------------------------
@@ -3720,7 +3753,11 @@ anychart.enums.TextWrap = {
   /**
    Wrap by symbol.
    */
-  BY_LETTER: 'byLetter'
+  BY_LETTER: 'byLetter',
+  /**
+   Wrap by word.
+   */
+  BY_WORD: 'byWord'
 };
 
 
@@ -3736,6 +3773,8 @@ anychart.enums.normalizeTextWrap = function(value) {
     case 'no':
     case 'n':
       return anychart.enums.TextWrap.NO_WRAP;
+    case 'byword':
+      return anychart.enums.TextWrap.BY_WORD;
     default:
       return anychart.enums.TextWrap.BY_LETTER;
   }
@@ -5510,7 +5549,8 @@ anychart.enums.SeriesDrawerTypes = {
   POLAR_LINE: 25,
   POLAR_AREA: 26,
   POLAR_COLUMN: 27,
-  POLAR_RANGE_COLUMN: 28
+  POLAR_RANGE_COLUMN: 28,
+  MEKKO: 29
 };
 
 
@@ -6731,6 +6771,8 @@ goog.exportSymbol('anychart.enums.PolarSeriesType.POLYLINE', anychart.enums.Pola
 goog.exportSymbol('anychart.enums.PolarSeriesType.COLUMN', anychart.enums.PolarSeriesType.COLUMN);
 goog.exportSymbol('anychart.enums.PolarSeriesType.RANGE_COLUMN', anychart.enums.PolarSeriesType.RANGE_COLUMN);
 
+goog.exportSymbol('anychart.enums.MekkoSeriesType.MEKKO', anychart.enums.MekkoSeriesType.MEKKO);
+
 goog.exportSymbol('anychart.enums.MilestoneShape.CIRCLE', anychart.enums.MilestoneShape.CIRCLE);
 goog.exportSymbol('anychart.enums.MilestoneShape.RHOMBUS', anychart.enums.MilestoneShape.RHOMBUS);
 goog.exportSymbol('anychart.enums.MilestoneShape.RECTANGLE', anychart.enums.MilestoneShape.RECTANGLE);
@@ -6858,6 +6900,7 @@ goog.exportSymbol('anychart.enums.VAlign.BOTTOM', anychart.enums.VAlign.BOTTOM);
 
 goog.exportSymbol('anychart.enums.TextWrap.NO_WRAP', anychart.enums.TextWrap.NO_WRAP);
 goog.exportSymbol('anychart.enums.TextWrap.BY_LETTER', anychart.enums.TextWrap.BY_LETTER);
+goog.exportSymbol('anychart.enums.TextWrap.BY_WORD', anychart.enums.TextWrap.BY_WORD);
 
 
 
